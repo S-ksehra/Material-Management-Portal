@@ -26,6 +26,7 @@ import {
 import { useAuth } from '@/lib/AuthContext';
 
 const COMPANY_NAME = 'Sakshi Laminates';
+const MODULE_NAME = 'Material Requirement Tool';
 const FINVERSE_URL = 'https://finversepartners.com/';
 
 type Mode =
@@ -371,21 +372,24 @@ export function LoginScreen() {
     'focus:ring-2 focus:ring-[var(--color-primary)]/10 outline-none transition-all duration-200';
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="h-[100dvh] min-h-[100dvh] w-full flex bg-white overflow-hidden">
 
       {/* =====================================================
           LEFT BRAND PANEL
+          DESKTOP ONLY
       ===================================================== */}
 
       <div className="hidden lg:flex w-[45%] xl:w-[42%] relative overflow-hidden bg-[var(--color-primary)]">
 
         {/* Decorative gradient orbs */}
         <div className="absolute inset-0 pointer-events-none">
+
           <div className="absolute -top-24 -left-16 w-96 h-96 rounded-full bg-white/[0.07] blur-3xl animate-floatOrb" />
 
           <div className="absolute bottom-0 -right-12 w-80 h-80 rounded-full bg-[var(--color-primary-hover)]/40 blur-3xl animate-floatOrb2" />
 
           <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-white/[0.04] blur-2xl" />
+
         </div>
 
         {/* Grid */}
@@ -401,45 +405,17 @@ export function LoginScreen() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
 
-          {/* ===============================
-              DESKTOP LOGO - 38px
-          =============================== */}
-
+          {/* Desktop Company Name */}
           <div className="flex items-center gap-2.5">
-
-            {/* <div
-              className="shrink-0 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center overflow-hidden"
-              style={{
-                width: '38px',
-                height: '38px',
-                padding: '4px',
-              }}
-            >
-              <img
-                src="/sllogo.jpeg"
-                alt={COMPANY_NAME}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div> */}
 
             <h1 className="text-lg font-bold leading-tight">
               {COMPANY_NAME}
             </h1>
+
           </div>
 
           {/* Hero */}
           <div className="space-y-6 max-w-md">
-
-            {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs font-medium text-white/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-
-              Material Requirement Tool
-            </div> */}
 
             <h1 className="text-3xl xl:text-[2.5rem] font-bold leading-[1.15]">
               Bill of Material
@@ -467,6 +443,7 @@ export function LoginScreen() {
                   text: 'Complete audit trail of all activities',
                 },
               ].map((feature, index) => {
+
                 const Icon = feature.icon;
 
                 return (
@@ -474,14 +451,20 @@ export function LoginScreen() {
                     key={index}
                     className="flex items-center gap-3 text-sm text-white/65"
                   >
+
                     <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+
                       <Icon
                         size={15}
                         className="text-white/75"
                       />
+
                     </div>
 
-                    <span>{feature.text}</span>
+                    <span>
+                      {feature.text}
+                    </span>
+
                   </div>
                 );
               })}
@@ -491,7 +474,10 @@ export function LoginScreen() {
 
           {/* Powered by */}
           <div className="flex items-center gap-2 text-xs text-white/40">
-            <span>Powered by</span>
+
+            <span>
+              Powered by
+            </span>
 
             <a
               href={FINVERSE_URL}
@@ -501,7 +487,9 @@ export function LoginScreen() {
             >
               Finverse
             </a>
+
           </div>
+
         </div>
       </div>
 
@@ -509,72 +497,33 @@ export function LoginScreen() {
           RIGHT FORM PANEL
       ===================================================== */}
 
-      <div className="flex-1 flex flex-col bg-[#FAFAFA]">
+      <div className="flex-1 h-[100dvh] min-h-0 flex flex-col bg-[#FAFAFA] overflow-hidden">
 
-        {/* ===============================
-            MOBILE BRAND
-        =============================== */}
-
-        <div className="lg:hidden bg-[var(--color-primary)] px-6 py-4 flex items-center gap-2.5 relative overflow-hidden">
-
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
-
-          <div className="relative flex items-center gap-2.5">
-
-            {/* Mobile Logo - 32px */}
-            <div
-              className="shrink-0 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center overflow-hidden"
-              style={{
-                width: '32px',
-                height: '32px',
-                padding: '3px',
-              }}
-            >
-              <img
-                src="/sllogo.jpeg"
-                alt={COMPANY_NAME}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div>
-
-            <div>
-              <h2 className="text-white text-base font-bold leading-tight">
-                {COMPANY_NAME}
-              </h2>
-
-              <p className="text-white/50 text-xs">
-                Material Requirement Tool
-              </p>
-            </div>
-
-          </div>
-        </div>
+        {/* =================================================
+            MOBILE:
+            NO TOP HEADER
+        ================================================= */}
 
         {/* Form Area */}
-        <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain">
 
-          <div className="w-full max-w-[420px]">
+          <div className="w-full max-w-[420px] mx-auto flex-1 flex flex-col px-5 py-5 sm:px-10 sm:py-10">
 
             {/* =================================================
                 MAIN FORM LOGO
-                FIXED: 52px ONLY
             ================================================= */}
 
-            <div className="flex flex-col items-center mb-7">
+            <div className="flex flex-col items-center mb-5 sm:mb-7">
 
               <div
-                className="shrink-0 rounded-xl bg-[var(--color-primary-light)] border border-[var(--color-border-base)] flex items-center justify-center overflow-hidden"
+                className="shrink-0 flex items-center justify-center overflow-hidden"
                 style={{
                   width: '60px',
                   height: '60px',
                   padding: '6px',
                 }}
               >
+
                 <img
                   src="/sllogo.jpeg"
                   alt={COMPANY_NAME}
@@ -585,22 +534,28 @@ export function LoginScreen() {
                     display: 'block',
                   }}
                 />
+
               </div>
 
-              <h1 className="text-lg font-bold text-[var(--color-primary)] mt-2.5">
+              <h1 className="text-lg font-bold text-[var(--color-primary)] mt-2">
                 {COMPANY_NAME}
               </h1>
+
+              {/* Mobile Module Name */}
+              <p className="lg:hidden text-xs text-[var(--color-text-secondary)] mt-0.5">
+                {MODULE_NAME}
+              </p>
 
             </div>
 
             {/* Title */}
-            <div className="mb-6">
+            <div className="mb-5 sm:mb-6">
 
-              <h2 className="text-[1.5rem] font-bold text-[var(--color-text-primary)] leading-tight">
+              <h2 className="text-[1.4rem] sm:text-[1.5rem] font-bold text-[var(--color-text-primary)] leading-tight">
                 {titles[mode]}
               </h2>
 
-              <p className="text-sm text-[var(--color-text-secondary)] mt-1.5">
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                 {subtitles[mode]}
               </p>
 
@@ -608,7 +563,7 @@ export function LoginScreen() {
 
             {/* Error */}
             {error && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-[var(--color-error)] bg-red-50 border border-red-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3.5 flex items-start gap-2.5 text-sm text-[var(--color-error)] bg-red-50 border border-red-200/70 rounded-xl px-4 py-3 animate-fadeIn">
 
                 <AlertCircle
                   size={17}
@@ -624,7 +579,7 @@ export function LoginScreen() {
 
             {/* Info */}
             {info && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-[var(--color-success)] bg-green-50 border border-green-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3.5 flex items-start gap-2.5 text-sm text-[var(--color-success)] bg-green-50 border border-green-200/70 rounded-xl px-4 py-3 animate-fadeIn">
 
                 <CheckCircle2
                   size={17}
@@ -640,7 +595,7 @@ export function LoginScreen() {
 
             {/* Demo OTP */}
             {devOtp && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3.5 flex items-start gap-2.5 text-sm text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-4 py-3 animate-fadeIn">
 
                 <Mail
                   size={17}
@@ -664,7 +619,7 @@ export function LoginScreen() {
             {mode === 'password' && (
               <div
                 key="password-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 {/* User ID */}
@@ -779,7 +734,7 @@ export function LoginScreen() {
                 </button>
 
                 {/* Links */}
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
@@ -812,7 +767,7 @@ export function LoginScreen() {
             {mode === 'otp-request' && (
               <div
                 key="otp-request-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -868,7 +823,7 @@ export function LoginScreen() {
                   )}
                 </button>
 
-                <div className="pt-1">
+                <div className="pt-0.5">
 
                   <button
                     type="button"
@@ -896,7 +851,7 @@ export function LoginScreen() {
             {mode === 'otp-verify' && (
               <div
                 key="otp-verify-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -954,7 +909,7 @@ export function LoginScreen() {
                   )}
                 </button>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
@@ -1005,7 +960,7 @@ export function LoginScreen() {
             {mode === 'forgot-request' && (
               <div
                 key="forgot-request-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1061,7 +1016,7 @@ export function LoginScreen() {
                   )}
                 </button>
 
-                <div className="pt-1">
+                <div className="pt-0.5">
 
                   <button
                     type="button"
@@ -1089,7 +1044,7 @@ export function LoginScreen() {
             {mode === 'forgot-verify' && (
               <div
                 key="forgot-verify-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 {resetEmail && (
@@ -1152,7 +1107,7 @@ export function LoginScreen() {
                   )}
                 </button>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
@@ -1203,7 +1158,7 @@ export function LoginScreen() {
             {mode === 'forgot-reset' && (
               <div
                 key="forgot-reset-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1259,7 +1214,7 @@ export function LoginScreen() {
 
                   </div>
 
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 ml-1">
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1.5 ml-1">
                     Min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character.
                   </p>
 
@@ -1329,9 +1284,10 @@ export function LoginScreen() {
 
             {/* =================================================
                 MOBILE FOOTER
+                STAYS AT BOTTOM
             ================================================= */}
 
-            <div className="lg:hidden flex items-center justify-center gap-2 mt-8 pt-6 border-t border-[var(--color-border-base)]">
+            <div className="lg:hidden mt-auto pt-5 flex items-center justify-center gap-2">
 
               <span className="text-xs text-[var(--color-text-secondary)]">
                 Powered by
