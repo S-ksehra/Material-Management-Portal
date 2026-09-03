@@ -32,9 +32,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  border-color: var(--color-border-base);
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
