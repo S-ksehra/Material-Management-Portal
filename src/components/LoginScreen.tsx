@@ -27,7 +27,7 @@ import {
 import { useAuth } from '@/lib/AuthContext';
 
 const COMPANY_NAME = 'Sakshi Laminates';
-const MODULE_NAME = 'Bill of Material Management Portal';
+const MODULE_NAME = 'Material Requirement Tool';
 const FINVERSE_URL = 'https://finversepartners.com/';
 
 type Mode =
@@ -405,8 +405,8 @@ export function LoginScreen() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
 
-          {/* Company */}
-          <div className="flex items-center gap-2.5">
+          {/* Desktop Company */}
+          <div className="flex items-center">
 
             <h1 className="text-lg font-bold leading-tight">
               {COMPANY_NAME}
@@ -471,7 +471,7 @@ export function LoginScreen() {
 
           </div>
 
-          {/* Powered by */}
+          {/* Desktop Footer */}
           <div className="flex items-center gap-2 text-xs text-white/40">
 
             <span>Powered by</span>
@@ -495,29 +495,28 @@ export function LoginScreen() {
           RIGHT FORM PANEL
       ===================================================== */}
 
-      <div className="flex-1 h-full flex flex-col bg-[#FAFAFA] overflow-hidden">
+      <div className="flex-1 min-w-0 h-full flex flex-col bg-[#FAFAFA] overflow-hidden">
 
         {/* =================================================
             FORM AREA
         ================================================= */}
 
-        <div className="flex-1 min-h-0 flex items-center justify-center px-5 py-4 sm:p-10 overflow-hidden">
+        <div className="flex-1 min-h-0 flex items-center justify-center px-4 py-4 sm:p-8 lg:p-10 overflow-hidden">
 
-          <div className="w-full max-w-[420px] max-h-full">
+          <div className="w-full max-w-[420px]">
 
             {/* =================================================
-                MOBILE / MAIN LOGO
-                NO BACKGROUND
-                NO BORDER
+                MAIN LOGO + COMPANY + MODULE
             ================================================= */}
 
-            <div className="flex flex-col items-center mb-4 sm:mb-7">
+            <div className="flex flex-col items-center mb-5 sm:mb-7">
 
+              {/* Logo - NO background, NO border */}
               <div
                 className="shrink-0 flex items-center justify-center overflow-hidden"
                 style={{
-                  width: 'clamp(48px, 14vw, 60px)',
-                  height: 'clamp(48px, 14vw, 60px)',
+                  width: '56px',
+                  height: '56px',
                 }}
               >
 
@@ -534,22 +533,20 @@ export function LoginScreen() {
 
               </div>
 
-              <h1 className="text-base sm:text-lg font-bold text-[var(--color-primary)] mt-1.5 sm:mt-2.5 text-center">
+              {/* Company Name */}
+              <h1 className="text-base sm:text-lg font-bold text-[var(--color-primary)] mt-2">
                 {COMPANY_NAME}
               </h1>
 
-              {/* Mobile Module Name */}
-              <p className="lg:hidden text-xs sm:text-sm text-[var(--color-text-secondary)] text-center mt-1 leading-snug px-4">
+              {/* Module Name */}
+              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-0.5">
                 {MODULE_NAME}
               </p>
 
             </div>
 
-            {/* =================================================
-                TITLE
-            ================================================= */}
-
-            <div className="mb-4 sm:mb-6">
+            {/* Title */}
+            <div className="mb-5 sm:mb-6">
 
               <h2 className="text-[1.35rem] sm:text-[1.5rem] font-bold text-[var(--color-text-primary)] leading-tight">
                 {titles[mode]}
@@ -561,57 +558,48 @@ export function LoginScreen() {
 
             </div>
 
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
+            {/* Error */}
             {error && (
               <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-[var(--color-error)] bg-red-50 border border-red-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <AlertCircle
-                  size={17}
+                  size={16}
                   className="shrink-0 mt-0.5"
                 />
 
-                <span className="flex-1">
+                <span className="flex-1 min-w-0">
                   {error}
                 </span>
 
               </div>
             )}
 
-            {/* =================================================
-                INFO
-            ================================================= */}
-
+            {/* Info */}
             {info && (
               <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-[var(--color-success)] bg-green-50 border border-green-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <CheckCircle2
-                  size={17}
+                  size={16}
                   className="shrink-0 mt-0.5"
                 />
 
-                <span className="flex-1">
+                <span className="flex-1 min-w-0">
                   {info}
                 </span>
 
               </div>
             )}
 
-            {/* =================================================
-                DEMO OTP
-            ================================================= */}
-
+            {/* Demo OTP */}
             {devOtp && (
               <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <Mail
-                  size={17}
+                  size={16}
                   className="shrink-0 mt-0.5"
                 />
 
-                <span className="flex-1">
+                <span className="flex-1 min-w-0">
 
                   <strong>
                     Demo OTP: {devOtp}
@@ -631,7 +619,7 @@ export function LoginScreen() {
             {mode === 'password' && (
               <div
                 key="password-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 {/* User ID */}
@@ -752,14 +740,14 @@ export function LoginScreen() {
                 </button>
 
                 {/* Links */}
-                <div className="flex items-center justify-between pt-0.5 sm:pt-1 gap-4">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
                     onClick={() =>
                       changeMode('otp-request')
                     }
-                    className={`${linkBtn} text-left`}
+                    className={linkBtn}
                   >
                     Login with OTP
                   </button>
@@ -769,7 +757,7 @@ export function LoginScreen() {
                     onClick={() =>
                       changeMode('forgot-request')
                     }
-                    className={`${linkBtn} text-right`}
+                    className={linkBtn}
                   >
                     Forgot Password?
                   </button>
@@ -786,7 +774,7 @@ export function LoginScreen() {
             {mode === 'otp-request' && (
               <div
                 key="otp-request-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -845,7 +833,7 @@ export function LoginScreen() {
 
                 </button>
 
-                <div className="pt-0.5 sm:pt-1">
+                <div className="pt-0.5">
 
                   <button
                     type="button"
@@ -876,7 +864,7 @@ export function LoginScreen() {
             {mode === 'otp-verify' && (
               <div
                 key="otp-verify-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -936,7 +924,7 @@ export function LoginScreen() {
 
                 </button>
 
-                <div className="flex items-center justify-between pt-0.5 sm:pt-1">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
@@ -992,7 +980,7 @@ export function LoginScreen() {
             {mode === 'forgot-request' && (
               <div
                 key="forgot-request-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1051,7 +1039,7 @@ export function LoginScreen() {
 
                 </button>
 
-                <div className="pt-0.5 sm:pt-1">
+                <div className="pt-0.5">
 
                   <button
                     type="button"
@@ -1082,7 +1070,7 @@ export function LoginScreen() {
             {mode === 'forgot-verify' && (
               <div
                 key="forgot-verify-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 {resetEmail && (
@@ -1147,7 +1135,7 @@ export function LoginScreen() {
 
                 </button>
 
-                <div className="flex items-center justify-between pt-0.5 sm:pt-1">
+                <div className="flex items-center justify-between pt-0.5">
 
                   <button
                     type="button"
@@ -1203,7 +1191,7 @@ export function LoginScreen() {
             {mode === 'forgot-reset' && (
               <div
                 key="forgot-reset-form"
-                className="space-y-3 sm:space-y-4 animate-slideInRight"
+                className="space-y-3.5 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1261,7 +1249,7 @@ export function LoginScreen() {
 
                   </div>
 
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 ml-1 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] mt-2 ml-1 leading-relaxed">
                     Min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character.
                   </p>
 
@@ -1337,7 +1325,7 @@ export function LoginScreen() {
 
             <div className="lg:hidden flex items-center justify-center gap-2 mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-[var(--color-border-base)]">
 
-              <span className="text-xs text-[var(--color-text-secondary)]">
+              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)]">
                 Powered by
               </span>
 
@@ -1345,7 +1333,7 @@ export function LoginScreen() {
                 href={FINVERSE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition"
+                className="text-[11px] sm:text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition"
               >
                 Finverse
               </a>
