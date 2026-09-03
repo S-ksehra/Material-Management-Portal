@@ -416,7 +416,7 @@ export function LoginScreen() {
               }}
             >
               <img
-                src="/sk_s.png"
+                src="/sllogo.jpeg"
                 alt={COMPANY_NAME}
                 style={{
                   width: '100%',
@@ -531,7 +531,7 @@ export function LoginScreen() {
               }}
             >
               <img
-                src="/sk_s.png"
+                src="/sllogo.jpeg"
                 alt={COMPANY_NAME}
                 style={{
                   width: '100%',
@@ -576,7 +576,7 @@ export function LoginScreen() {
                 }}
               >
                 <img
-                  src="/sk_s.png"
+                  src="/sllogo.jpeg"
                   alt={COMPANY_NAME}
                   style={{
                     width: '100%',
