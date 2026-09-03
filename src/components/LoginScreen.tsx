@@ -1,3 +1,4 @@
+```tsx
 import { useState, useEffect } from 'react';
 import {
   Eye,
@@ -26,6 +27,7 @@ import {
 import { useAuth } from '@/lib/AuthContext';
 
 const COMPANY_NAME = 'Sakshi Laminates';
+const MODULE_NAME = 'Bill of Material Management Portal';
 const FINVERSE_URL = 'https://finversepartners.com/';
 
 type Mode =
@@ -371,21 +373,23 @@ export function LoginScreen() {
     'focus:ring-2 focus:ring-[var(--color-primary)]/10 outline-none transition-all duration-200';
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="h-[100dvh] min-h-[100dvh] w-full flex bg-white overflow-hidden">
 
       {/* =====================================================
-          LEFT BRAND PANEL
+          LEFT BRAND PANEL - DESKTOP ONLY
       ===================================================== */}
 
       <div className="hidden lg:flex w-[45%] xl:w-[42%] relative overflow-hidden bg-[var(--color-primary)]">
 
         {/* Decorative gradient orbs */}
         <div className="absolute inset-0 pointer-events-none">
+
           <div className="absolute -top-24 -left-16 w-96 h-96 rounded-full bg-white/[0.07] blur-3xl animate-floatOrb" />
 
           <div className="absolute bottom-0 -right-12 w-80 h-80 rounded-full bg-[var(--color-primary-hover)]/40 blur-3xl animate-floatOrb2" />
 
           <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-white/[0.04] blur-2xl" />
+
         </div>
 
         {/* Grid */}
@@ -401,45 +405,17 @@ export function LoginScreen() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 text-white w-full">
 
-          {/* ===============================
-              DESKTOP LOGO - 38px
-          =============================== */}
-
+          {/* Company */}
           <div className="flex items-center gap-2.5">
-
-            {/* <div
-              className="shrink-0 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center overflow-hidden"
-              style={{
-                width: '38px',
-                height: '38px',
-                padding: '4px',
-              }}
-            >
-              <img
-                src="/sllogo.jpeg"
-                alt={COMPANY_NAME}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div> */}
 
             <h1 className="text-lg font-bold leading-tight">
               {COMPANY_NAME}
             </h1>
+
           </div>
 
           {/* Hero */}
           <div className="space-y-6 max-w-md">
-
-            {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-xs font-medium text-white/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-
-              Material Requirement Tool
-            </div> */}
 
             <h1 className="text-3xl xl:text-[2.5rem] font-bold leading-[1.15]">
               Bill of Material
@@ -467,6 +443,7 @@ export function LoginScreen() {
                   text: 'Complete audit trail of all activities',
                 },
               ].map((feature, index) => {
+
                 const Icon = feature.icon;
 
                 return (
@@ -474,23 +451,29 @@ export function LoginScreen() {
                     key={index}
                     className="flex items-center gap-3 text-sm text-white/65"
                   >
+
                     <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+
                       <Icon
                         size={15}
                         className="text-white/75"
                       />
+
                     </div>
 
                     <span>{feature.text}</span>
+
                   </div>
                 );
               })}
 
             </div>
+
           </div>
 
           {/* Powered by */}
           <div className="flex items-center gap-2 text-xs text-white/40">
+
             <span>Powered by</span>
 
             <a
@@ -501,80 +484,43 @@ export function LoginScreen() {
             >
               Finverse
             </a>
+
           </div>
+
         </div>
+
       </div>
 
       {/* =====================================================
           RIGHT FORM PANEL
       ===================================================== */}
 
-      <div className="flex-1 flex flex-col bg-[#FAFAFA]">
+      <div className="flex-1 h-full flex flex-col bg-[#FAFAFA] overflow-hidden">
 
-        {/* ===============================
-            MOBILE BRAND
-        =============================== */}
+        {/* =================================================
+            FORM AREA
+        ================================================= */}
 
-        <div className="lg:hidden bg-[var(--color-primary)] px-6 py-4 flex items-center gap-2.5 relative overflow-hidden">
+        <div className="flex-1 min-h-0 flex items-center justify-center px-5 py-4 sm:p-10 overflow-hidden">
 
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
-
-          <div className="relative flex items-center gap-2.5">
-
-            {/* Mobile Logo - 32px */}
-            <div
-              className="shrink-0 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center overflow-hidden"
-              style={{
-                width: '32px',
-                height: '32px',
-                padding: '3px',
-              }}
-            >
-              <img
-                src="/sllogo.jpeg"
-                alt={COMPANY_NAME}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
-            </div>
-
-            <div>
-              <h2 className="text-white text-base font-bold leading-tight">
-                {COMPANY_NAME}
-              </h2>
-
-              <p className="text-white/50 text-xs">
-                Material Requirement Tool
-              </p>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Form Area */}
-        <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
-
-          <div className="w-full max-w-[420px]">
+          <div className="w-full max-w-[420px] max-h-full">
 
             {/* =================================================
-                MAIN FORM LOGO
-                FIXED: 52px ONLY
+                MOBILE / MAIN LOGO
+                NO BACKGROUND
+                NO BORDER
             ================================================= */}
 
-            <div className="flex flex-col items-center mb-7">
+            <div className="flex flex-col items-center mb-4 sm:mb-7">
 
               <div
-                className="shrink-0 rounded-xl bg-[var(--color-primary-light)] border border-[var(--color-border-base)] flex items-center justify-center overflow-hidden"
+                className="shrink-0 flex items-center justify-center overflow-hidden"
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  padding: '6px',
+                  width: 'clamp(48px, 14vw, 60px)',
+                  height: 'clamp(48px, 14vw, 60px)',
                 }}
               >
+
                 <img
                   src="/sllogo.jpeg"
                   alt={COMPANY_NAME}
@@ -585,30 +531,42 @@ export function LoginScreen() {
                     display: 'block',
                   }}
                 />
+
               </div>
 
-              <h1 className="text-lg font-bold text-[var(--color-primary)] mt-2.5">
+              <h1 className="text-base sm:text-lg font-bold text-[var(--color-primary)] mt-1.5 sm:mt-2.5 text-center">
                 {COMPANY_NAME}
               </h1>
 
+              {/* Mobile Module Name */}
+              <p className="lg:hidden text-xs sm:text-sm text-[var(--color-text-secondary)] text-center mt-1 leading-snug px-4">
+                {MODULE_NAME}
+              </p>
+
             </div>
 
-            {/* Title */}
-            <div className="mb-6">
+            {/* =================================================
+                TITLE
+            ================================================= */}
 
-              <h2 className="text-[1.5rem] font-bold text-[var(--color-text-primary)] leading-tight">
+            <div className="mb-4 sm:mb-6">
+
+              <h2 className="text-[1.35rem] sm:text-[1.5rem] font-bold text-[var(--color-text-primary)] leading-tight">
                 {titles[mode]}
               </h2>
 
-              <p className="text-sm text-[var(--color-text-secondary)] mt-1.5">
+              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] mt-1.5 leading-relaxed">
                 {subtitles[mode]}
               </p>
 
             </div>
 
-            {/* Error */}
+            {/* =================================================
+                ERROR
+            ================================================= */}
+
             {error && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-[var(--color-error)] bg-red-50 border border-red-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-[var(--color-error)] bg-red-50 border border-red-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <AlertCircle
                   size={17}
@@ -622,9 +580,12 @@ export function LoginScreen() {
               </div>
             )}
 
-            {/* Info */}
+            {/* =================================================
+                INFO
+            ================================================= */}
+
             {info && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-[var(--color-success)] bg-green-50 border border-green-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-[var(--color-success)] bg-green-50 border border-green-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <CheckCircle2
                   size={17}
@@ -638,9 +599,12 @@ export function LoginScreen() {
               </div>
             )}
 
-            {/* Demo OTP */}
+            {/* =================================================
+                DEMO OTP
+            ================================================= */}
+
             {devOtp && (
-              <div className="mb-4 flex items-start gap-2.5 text-sm text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-4 py-3 animate-fadeIn">
+              <div className="mb-3 sm:mb-4 flex items-start gap-2.5 text-xs sm:text-sm text-amber-700 bg-amber-50 border border-amber-200/70 rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 animate-fadeIn">
 
                 <Mail
                   size={17}
@@ -648,10 +612,13 @@ export function LoginScreen() {
                 />
 
                 <span className="flex-1">
+
                   <strong>
                     Demo OTP: {devOtp}
                   </strong>{' '}
+
                   — email delivery not configured
+
                 </span>
 
               </div>
@@ -664,7 +631,7 @@ export function LoginScreen() {
             {mode === 'password' && (
               <div
                 key="password-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 {/* User ID */}
@@ -701,6 +668,7 @@ export function LoginScreen() {
                     />
 
                   </div>
+
                 </div>
 
                 {/* Password */}
@@ -751,14 +719,17 @@ export function LoginScreen() {
                       }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition"
                     >
+
                       {showPassword ? (
                         <EyeOff size={17} />
                       ) : (
                         <Eye size={17} />
                       )}
+
                     </button>
 
                   </div>
+
                 </div>
 
                 {/* Sign In */}
@@ -768,6 +739,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -776,17 +748,18 @@ export function LoginScreen() {
                   ) : (
                     <>Sign In</>
                   )}
+
                 </button>
 
                 {/* Links */}
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5 sm:pt-1 gap-4">
 
                   <button
                     type="button"
                     onClick={() =>
                       changeMode('otp-request')
                     }
-                    className={linkBtn}
+                    className={`${linkBtn} text-left`}
                   >
                     Login with OTP
                   </button>
@@ -796,12 +769,13 @@ export function LoginScreen() {
                     onClick={() =>
                       changeMode('forgot-request')
                     }
-                    className={linkBtn}
+                    className={`${linkBtn} text-right`}
                   >
                     Forgot Password?
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -812,7 +786,7 @@ export function LoginScreen() {
             {mode === 'otp-request' && (
               <div
                 key="otp-request-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -848,6 +822,7 @@ export function LoginScreen() {
                     />
 
                   </div>
+
                 </div>
 
                 <button
@@ -858,6 +833,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -866,9 +842,10 @@ export function LoginScreen() {
                   ) : (
                     <>Send OTP</>
                   )}
+
                 </button>
 
-                <div className="pt-1">
+                <div className="pt-0.5 sm:pt-1">
 
                   <button
                     type="button"
@@ -877,15 +854,18 @@ export function LoginScreen() {
                     }
                     className={backBtn}
                   >
+
                     <ArrowLeft
                       size={14}
                       className="transition group-hover:-translate-x-0.5"
                     />
 
                     Back to Password Login
+
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -896,7 +876,7 @@ export function LoginScreen() {
             {mode === 'otp-verify' && (
               <div
                 key="otp-verify-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -929,7 +909,7 @@ export function LoginScreen() {
                     autoComplete="one-time-code"
                   />
 
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 text-center">
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 text-center leading-relaxed">
                     A 6-digit code was sent to your registered email
                   </p>
 
@@ -941,6 +921,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -952,9 +933,10 @@ export function LoginScreen() {
                       <CheckCircle2 size={16} />
                     </>
                   )}
+
                 </button>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5 sm:pt-1">
 
                   <button
                     type="button"
@@ -966,12 +948,14 @@ export function LoginScreen() {
                     }}
                     className={backBtn}
                   >
+
                     <ArrowLeft
                       size={14}
                       className="transition group-hover:-translate-x-0.5"
                     />
 
                     Back
+
                   </button>
 
                   <button
@@ -989,12 +973,15 @@ export function LoginScreen() {
                     }
                     className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
+
                     {resendTimer > 0
                       ? `Resend in ${resendTimer}s`
                       : 'Resend OTP'}
+
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -1005,7 +992,7 @@ export function LoginScreen() {
             {mode === 'forgot-request' && (
               <div
                 key="forgot-request-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1041,6 +1028,7 @@ export function LoginScreen() {
                     />
 
                   </div>
+
                 </div>
 
                 <button
@@ -1051,6 +1039,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -1059,9 +1048,10 @@ export function LoginScreen() {
                   ) : (
                     <>Send Reset OTP</>
                   )}
+
                 </button>
 
-                <div className="pt-1">
+                <div className="pt-0.5 sm:pt-1">
 
                   <button
                     type="button"
@@ -1070,15 +1060,18 @@ export function LoginScreen() {
                     }
                     className={backBtn}
                   >
+
                     <ArrowLeft
                       size={14}
                       className="transition group-hover:-translate-x-0.5"
                     />
 
                     Back to Login
+
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -1089,15 +1082,15 @@ export function LoginScreen() {
             {mode === 'forgot-verify' && (
               <div
                 key="forgot-verify-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 {resetEmail && (
-                  <p className="text-sm text-[var(--color-text-secondary)] text-center bg-[var(--color-primary-light)] rounded-xl px-4 py-3">
+                  <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] text-center bg-[var(--color-primary-light)] rounded-xl px-3.5 sm:px-4 py-2.5 sm:py-3 leading-relaxed">
 
                     OTP sent to{' '}
 
-                    <strong className="text-[var(--color-primary)]">
+                    <strong className="text-[var(--color-primary)] break-all">
                       {resetEmail}
                     </strong>
 
@@ -1142,6 +1135,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -1150,9 +1144,10 @@ export function LoginScreen() {
                   ) : (
                     <>Verify OTP</>
                   )}
+
                 </button>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-0.5 sm:pt-1">
 
                   <button
                     type="button"
@@ -1164,12 +1159,14 @@ export function LoginScreen() {
                     }}
                     className={backBtn}
                   >
+
                     <ArrowLeft
                       size={14}
                       className="transition group-hover:-translate-x-0.5"
                     />
 
                     Back
+
                   </button>
 
                   <button
@@ -1187,12 +1184,15 @@ export function LoginScreen() {
                     }
                     className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
                   >
+
                     {resendTimer > 0
                       ? `Resend in ${resendTimer}s`
                       : 'Resend OTP'}
+
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -1203,7 +1203,7 @@ export function LoginScreen() {
             {mode === 'forgot-reset' && (
               <div
                 key="forgot-reset-form"
-                className="space-y-4 animate-slideInRight"
+                className="space-y-3 sm:space-y-4 animate-slideInRight"
               >
 
                 <div>
@@ -1250,16 +1250,18 @@ export function LoginScreen() {
                       }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition"
                     >
+
                       {showNewPassword ? (
                         <EyeOff size={17} />
                       ) : (
                         <Eye size={17} />
                       )}
+
                     </button>
 
                   </div>
 
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 ml-1">
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-2 ml-1 leading-relaxed">
                     Min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character.
                   </p>
 
@@ -1311,6 +1313,7 @@ export function LoginScreen() {
                   disabled={loading}
                   className={btnPrimary}
                 >
+
                   {loading ? (
                     <Loader2
                       size={18}
@@ -1322,6 +1325,7 @@ export function LoginScreen() {
                       <CheckCircle2 size={16} />
                     </>
                   )}
+
                 </button>
 
               </div>
@@ -1331,7 +1335,7 @@ export function LoginScreen() {
                 MOBILE FOOTER
             ================================================= */}
 
-            <div className="lg:hidden flex items-center justify-center gap-2 mt-8 pt-6 border-t border-[var(--color-border-base)]">
+            <div className="lg:hidden flex items-center justify-center gap-2 mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-[var(--color-border-base)]">
 
               <span className="text-xs text-[var(--color-text-secondary)]">
                 Powered by
@@ -1349,8 +1353,12 @@ export function LoginScreen() {
             </div>
 
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
+```
