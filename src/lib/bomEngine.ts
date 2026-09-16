@@ -797,6 +797,7 @@ export function calculateBom(
 
   const rootNode: TreeNode = {
     item: producedItem,
+    item_code: resolveItemCode ? resolveItemCode(producedItem) : '',
     unit,
     quantity: productionQty,
     level: 0,
@@ -851,6 +852,7 @@ export function calculateBom(
 
       const childNode: TreeNode = {
         item: childItem,
+        item_code: resolveItemCode ? resolveItemCode(childItem) : '',
         unit:
           c.unit ||
           childSummary?.unit ||
@@ -901,6 +903,7 @@ export function calculateBom(
       level: n.level,
       type: n.type,
       item: n.item,
+      item_code: n.item_code,
       unit: n.unit,
       required_qty: n.quantity,
       parent_bom: n.parent_bom,
@@ -959,6 +962,7 @@ export function calculateBom(
     } else {
       rawMap.set(key, {
         item: r.item,
+        item_code: r.item_code,
         parent_bom:
           r.parent_bom,
         total_qty:

@@ -951,6 +951,10 @@ export function CalculateScreen({
                         </th>
 
                         <th className="text-left px-4 py-2 font-medium">
+                          Item Code
+                        </th>
+
+                        <th className="text-left px-4 py-2 font-medium">
                           Parent BOM
                         </th>
 
@@ -976,7 +980,7 @@ export function CalculateScreen({
 
                           <td
                             colSpan={
-                              4
+                              5
                             }
                             className="text-center py-8 text-[var(--color-text-secondary)]"
                           >
@@ -1005,6 +1009,12 @@ export function CalculateScreen({
                                 <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
                                   {
                                     r.item
+                                  }
+                                </td>
+
+                                <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
+                                  {
+                                    r.item_code || '—'
                                   }
                                 </td>
 
@@ -1203,6 +1213,10 @@ export function CalculateScreen({
                         Item
                       </th>
 
+                      <th className="text-left px-4 py-2 font-medium">
+                        Item Code
+                      </th>
+
                       <th className="text-right px-4 py-2 font-medium">
                         Required Qty
                       </th>
@@ -1224,7 +1238,7 @@ export function CalculateScreen({
 
                         <td
                           colSpan={
-                            6
+                            7
                           }
                           className="text-center py-8 text-[var(--color-text-secondary)]"
                         >
@@ -1276,6 +1290,12 @@ export function CalculateScreen({
                             <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
                               {
                                 r.item
+                              }
+                            </td>
+
+                            <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
+                              {
+                                r.item_code || '—'
                               }
                             </td>
 

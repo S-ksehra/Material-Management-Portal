@@ -60,6 +60,7 @@ export type MaterialType =
 
 export interface TreeNode {
   item: string;
+  item_code: string;
   unit: string;
   quantity: number;
   level: number;
@@ -72,6 +73,7 @@ export interface MaterialRequirementRow {
   level: number;
   type: MaterialType;
   item: string;
+  item_code: string;
   unit: string;
   required_qty: number;
   parent_bom: string;
@@ -79,6 +81,7 @@ export interface MaterialRequirementRow {
 
 export interface RawMaterialSummaryRow {
   item: string;
+  item_code: string;
   parent_bom: string;
   total_qty: number;
   unit: string;

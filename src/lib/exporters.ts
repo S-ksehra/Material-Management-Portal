@@ -17,7 +17,7 @@ function treeToRows(
   rows: string[]
 ): void {
   rows.push(
-    `${prefix}${node.item}  (${node.quantity} ${node.unit})`
+    `${prefix}${node.item}${node.item_code ? `  [${node.item_code}]` : ''}  (${node.quantity} ${node.unit})`
   );
 
   const childPrefix = prefix
@@ -95,6 +95,7 @@ export function exportToExcel(
       'Type',
       'Parent BOM',
       'Item',
+      'Item Code',
       'Required Qty',
       'Unit',
     ],
@@ -103,6 +104,7 @@ export function exportToExcel(
       r.type,
       r.parent_bom,
       r.item,
+      r.item_code || '',
       r.required_qty,
       r.unit,
     ]),
@@ -120,6 +122,7 @@ export function exportToExcel(
   const rawData = [
     [
       'Raw Material',
+      'Item Code',
       'Parent BOM',
       'Total Qty',
       'Unit',
@@ -127,6 +130,7 @@ export function exportToExcel(
     ...result.raw_material_summary.map(
       (r) => [
         r.item,
+        r.item_code || '',
         r.parent_bom,
         r.total_qty,
         r.unit,
@@ -368,6 +372,7 @@ export function exportToPdf(
       'Type',
       'Parent BOM',
       'Item',
+      'Item Code',
       'Required Qty',
       'Unit',
     ]],
@@ -379,6 +384,7 @@ export function exportToPdf(
           r.type,
           r.parent_bom,
           r.item,
+          r.item_code || '',
           r.required_qty.toFixed(4),
           r.unit,
         ]
@@ -457,6 +463,7 @@ export function exportToPdf(
     // Parent BOM added
     head: [[
       'Raw Material',
+      'Item Code',
       'Parent BOM',
       'Total Qty',
       'Unit',
@@ -466,6 +473,7 @@ export function exportToPdf(
       result.raw_material_summary.map(
         (r) => [
           r.item,
+          r.item_code || '',
           r.parent_bom,
           r.total_qty.toFixed(4),
           r.unit,
@@ -611,7 +619,7 @@ export function printResult(
     prefix: string
   ) {
     treeLines.push(
-      `${prefix}${node.item} <span class="qty">(${node.quantity.toFixed(2)} ${node.unit})</span>`
+      `${prefix}${node.item}${node.item_code ? ` <span class="qty">[${node.item_code}]</span>` : ''} <span class="qty">(${node.quantity.toFixed(2)} ${node.unit})</span>`
     );
 
     const childPrefix = prefix
@@ -662,6 +670,8 @@ export function printResult(
 
       <td>${r.item}</td>
 
+      <td>${r.item_code || '—'}</td>
+
       <td style="text-align:right">
         ${r.required_qty.toFixed(
           4
@@ -682,6 +692,8 @@ export function printResult(
         (r) => `
     <tr>
       <td>${r.item}</td>
+
+      <td>${r.item_code || '—'}</td>
 
       <td>${r.parent_bom}</td>
 
@@ -918,6 +930,7 @@ export function printResult(
             <th>Type</th>
             <th>Parent BOM</th>
             <th>Item</th>
+            <th>Item Code</th>
             <th>Required Qty</th>
             <th>Unit</th>
           </tr>
@@ -940,6 +953,7 @@ export function printResult(
 
           <tr>
             <th>Raw Material</th>
+            <th>Item Code</th>
             <th>Parent BOM</th>
             <th>Total Qty</th>
             <th>Unit</th>

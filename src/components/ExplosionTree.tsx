@@ -84,6 +84,13 @@ function TreeRow({
           {node.item}
         </span>
 
+        {/* Item Code */}
+        {node.item_code && (
+          <span className="shrink-0 text-xs tabular-nums text-[var(--color-text-secondary)] bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">
+            {node.item_code}
+          </span>
+        )}
+
         {/* Quantity */}
         <span className="ml-auto shrink-0 text-xs tabular-nums text-[var(--color-text-secondary)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">
           {formatQty(node.quantity)} {node.unit}
