@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Upload, History, Trash2, RefreshCw, FileSpreadsheet, Package, Boxes, Layers, Calendar, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, History, Trash2, RefreshCw, FileSpreadsheet, Package, Boxes, Layers, Calendar, CheckCircle2, AlertCircle, Loader2, FileText } from 'lucide-react';
 import type { BomFile } from '@/types';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -14,6 +14,9 @@ interface DashboardProps {
   onGoToCalculate: () => void;
   importing: boolean;
   importProgress: number;
+  itemMasterCount: number;
+  onImportItemMaster: (file: File) => Promise<void>;
+  importingItemMaster: boolean;
 }
 
 function KpiCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; label: string; value: string | number; sub?: string }) {
@@ -32,9 +35,10 @@ function KpiCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; l
 }
 
 export function Dashboard({
-  activeFile, loading, onImport, onDelete, onRefresh, onOpenHistory, onGoToCalculate, importing, importProgress, allFiles,
+  activeFile, loading, onImport, onDelete, onRefresh, onOpenHistory, onGoToCalculate, importing, importProgress, allFiles, itemMasterCount, onImportItemMaster, importingItemMaster,
 }: DashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const itemMasterInputRef = useRef<HTMLInputElement>(null);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -116,6 +120,14 @@ export function Dashboard({
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelected(f); e.target.value = ''; }}
       />
 
+      <input
+        ref={itemMasterInputRef}
+        type="file"
+        accept=".xlsx"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void onImportItemMaster(f); e.target.value = ''; }}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <KpiCard icon={CheckCircle2} label="Active BOM" value={activeFile ? 'Yes' : 'None'} sub={activeFile ? activeFile.file_name : 'No file active'} />
@@ -124,6 +136,30 @@ export function Dashboard({
         <KpiCard icon={Package} label="Total Produced Items" value={activeFile?.total_produced_items ?? 0} />
         <KpiCard icon={Boxes} label="Total Consumption Items" value={activeFile?.total_consumption_items ?? 0} />
         <KpiCard icon={Layers} label="Version" value={activeFile ? `v${activeFile.version}` : '—'} />
+      </div>
+
+      {/* Item Master Import Card */}
+      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-4 shadow-[var(--shadow-card)] mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center shrink-0">
+            <FileText size={20} className="text-[var(--color-primary)]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[var(--color-text-primary)]">Item Master</p>
+            <p className="text-xs text-[var(--color-text-secondary)]">
+              {itemMasterCount > 0 ? `${itemMasterCount} items mapped` : 'No Item Master imported'}
+              <span className="ml-1.5">— maps Item Codes to Produced Items</span>
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => itemMasterInputRef.current?.click()}
+          disabled={importingItemMaster}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-60 text-white rounded-lg text-sm font-medium transition shadow-sm"
+        >
+          {importingItemMaster ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+          {itemMasterCount > 0 ? 'Re-import Item Master' : 'Import Item Master'}
+        </button>
       </div>
 
       {/* Drag & Drop / Empty state */}

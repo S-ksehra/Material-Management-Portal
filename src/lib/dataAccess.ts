@@ -1,8 +1,9 @@
 import { supabase } from './supabase';
-import type { BomFile, AuditEntry, BomStatus } from '@/types';
+import type { BomFile, AuditEntry, BomStatus, ItemMasterEntry } from '@/types';
 
 const FILES_TABLE = 'bom_files';
 const AUDIT_TABLE = 'audit_log';
+const ITEM_MASTER_TABLE = 'item_master';
 
 export async function logAudit(action: string, remarks: string | null = null, user = 'System'): Promise<void> {
   try {
@@ -101,4 +102,39 @@ export async function deleteActiveFile(deletedBy: string): Promise<void> {
     .update({ status: 'deleted' as BomStatus, deleted_by: deletedBy, deleted_at: new Date().toISOString() })
     .eq('id', active.id);
   if (error) throw error;
+}
+
+// ---------- Item Master ----------
+
+export async function getItemMaster(): Promise<ItemMasterEntry[]> {
+  const { data, error } = await supabase
+    .from(ITEM_MASTER_TABLE)
+    .select('*')
+    .order('item_name', { ascending: true });
+  if (error) throw error;
+  return (data as ItemMasterEntry[]) ?? [];
+}
+
+export async function replaceItemMaster(
+  entries: { item_name: string; item_code: string }[],
+  uploadedBy: string,
+): Promise<void> {
+  const { error: delError } = await supabase
+    .from(ITEM_MASTER_TABLE)
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+  if (delError) throw delError;
+
+  if (entries.length === 0) return;
+
+  const rows = entries.map((e) => ({
+    item_name: e.item_name,
+    item_code: e.item_code,
+    uploaded_by: uploadedBy,
+  }));
+
+  const { error: insError } = await supabase
+    .from(ITEM_MASTER_TABLE)
+    .insert(rows);
+  if (insError) throw insError;
 }

@@ -9,6 +9,7 @@ import type {
   RawMaterialSummaryRow,
   MaterialType,
   ProductionSummary,
+  ItemMasterEntry,
 } from '@/types';
 
 // ---------- Excel Parsing ----------
@@ -705,7 +706,8 @@ export function calculateBom(
   bomSummary: BomSummaryRow[],
   consumptionDetails: ConsumptionRow[],
   producedItem: string,
-  productionQty: number
+  productionQty: number,
+  resolveItemCode?: (itemName: string) => string
 ): CalculationResult {
   // Lookup maps
   const summaryByItem =
@@ -775,6 +777,7 @@ export function calculateBom(
     scaling_factor: scalingFactor,
     calculation_date:
       new Date().toISOString(),
+    item_code: resolveItemCode ? resolveItemCode(producedItem) : '',
   };
 
   // ---------- Build Material Tree ----------
@@ -1015,4 +1018,100 @@ export function getDistinctProducedItems(
     (a, b) =>
       a.localeCompare(b)
   );
+}
+
+// ---------- Item Master Excel Parsing ----------
+// Column B = Item Name, Column G = Item Code (1-based)
+
+export interface ParsedItemMaster {
+  entries: { item_name: string; item_code: string }[];
+  errors: string[];
+}
+
+export function parseItemMasterExcel(
+  file: ArrayBuffer
+): ParsedItemMaster {
+  const wb = XLSX.read(file, { type: 'array' });
+
+  const sheetName = wb.SheetNames[0];
+  if (!sheetName) {
+    return { entries: [], errors: ['No sheets found in the Excel file.'] };
+  }
+
+  const ws = wb.Sheets[sheetName];
+  const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, {
+    header: 1,
+    blankrows: false,
+    defval: null,
+  });
+
+  const entries: { item_name: string; item_code: string }[] = [];
+  const errors: string[] = [];
+
+  // Try to find a header row — look for "Item Name" / "Item Code" in first ~10 rows.
+  let dataStart = 0;
+
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const row = rows[i];
+    const bText = normalizeText(cellToString(row[1]));
+    const gText = normalizeText(cellToString(row[6]));
+
+    const looksLikeHeader =
+      (bText.includes('item name') || bText.includes('item')) &&
+      (gText.includes('item code') || gText.includes('code'));
+
+    if (looksLikeHeader) {
+      dataStart = i + 1;
+      break;
+    }
+  }
+
+  for (let i = dataStart; i < rows.length; i++) {
+    const row = rows[i];
+    const itemName = cellToString(row[1]);
+    const itemCode = cellToString(row[6]);
+
+    if (!itemName && !itemCode) continue;
+
+    if (!itemName) {
+      errors.push(`Row ${i + 1}: Missing Item Name (column B).`);
+      continue;
+    }
+
+    if (!itemCode) {
+      errors.push(`Row ${i + 1}: Missing Item Code (column G).`);
+      continue;
+    }
+
+    entries.push({ item_name: itemName, item_code: itemCode });
+  }
+
+  if (entries.length === 0 && errors.length === 0) {
+    errors.push('No data rows found. Ensure Column B has Item Name and Column G has Item Code.');
+  }
+
+  return { entries, errors };
+}
+
+// ---------- Item Code Resolver ----------
+
+export function createItemCodeResolver(
+  itemMaster: ItemMasterEntry[]
+): (itemName: string) => string {
+  const map = new Map<string, string>();
+
+  itemMaster.forEach((e) => {
+    map.set(e.item_name.toLowerCase().trim(), e.item_code);
+  });
+
+  return (itemName: string): string => {
+    return map.get(itemName.toLowerCase().trim()) ?? '';
+  };
+}
+
+export function formatItemWithCode(
+  itemName: string,
+  itemCode: string
+): string {
+  return itemCode ? `${itemCode} | ${itemName}` : itemName;
 }

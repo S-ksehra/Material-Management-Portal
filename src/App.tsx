@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { LayoutDashboard, Calculator, ScrollText, Boxes, Settings, X, LogOut, User as UserIcon } from 'lucide-react';
-import type { BomFile, AuditEntry } from '@/types';
-import { getActiveFile, getAllFiles, getAuditLog, insertBomFile, deactivateActiveFile, deleteActiveFile, getNextVersion, logAudit } from '@/lib/dataAccess';
-import { parseBomExcel, validateBom } from '@/lib/bomEngine';
+import type { BomFile, AuditEntry, ItemMasterEntry } from '@/types';
+import { getActiveFile, getAllFiles, getAuditLog, insertBomFile, deactivateActiveFile, deleteActiveFile, getNextVersion, logAudit, getItemMaster, replaceItemMaster } from '@/lib/dataAccess';
+import { parseBomExcel, validateBom, parseItemMasterExcel } from '@/lib/bomEngine';
 import { Dashboard } from '@/components/Dashboard';
 import { CalculateScreen } from '@/components/CalculateScreen';
 import { HistoryDrawer } from '@/components/HistoryDrawer';
@@ -29,6 +29,8 @@ export default function App() {
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; msg: string } | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [showChangePw, setShowChangePw] = useState(false);
+  const [itemMaster, setItemMaster] = useState<ItemMasterEntry[]>([]);
+  const [importingItemMaster, setImportingItemMaster] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(COMPANY_KEY);
@@ -49,10 +51,11 @@ export default function App() {
   const refreshAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [active, files, log] = await Promise.all([getActiveFile(), getAllFiles(), getAuditLog()]);
+      const [active, files, log, im] = await Promise.all([getActiveFile(), getAllFiles(), getAuditLog(), getItemMaster()]);
       setActiveFile(active);
       setAllFiles(files);
       setAuditLog(log);
+      setItemMaster(im);
     } catch {
       showToast('error', 'Failed to load data from database.');
     } finally {
@@ -108,6 +111,32 @@ export default function App() {
     } finally {
       setImporting(false);
       setTimeout(() => setImportProgress(0), 500);
+    }
+  };
+
+  const handleImportItemMaster = async (file: File) => {
+    if (!user) return;
+    setImportingItemMaster(true);
+    try {
+      if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        showToast('error', 'Invalid file format. Only .xlsx files are supported.');
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      const parsed = parseItemMasterExcel(buf);
+      if (parsed.errors.length > 0 && parsed.entries.length === 0) {
+        showToast('error', `Item Master import failed:\n${parsed.errors.slice(0, 8).join('\n')}`);
+        return;
+      }
+      await replaceItemMaster(parsed.entries, user.username);
+      await logAudit('Item Master Imported', `${file.name} — ${parsed.entries.length} items`, user.username);
+      await refreshAll();
+      const warningCount = parsed.errors.length;
+      showToast('success', `Item Master imported successfully.${warningCount > 0 ? `\n${warningCount} row(s) had issues and were skipped.` : ''}`);
+    } catch (e) {
+      showToast('error', e instanceof Error ? e.message : 'Item Master import failed.');
+    } finally {
+      setImportingItemMaster(false);
     }
   };
 
@@ -243,12 +272,16 @@ export default function App() {
               onRefresh={() => void refreshAll()}
               onOpenHistory={() => setHistoryOpen(true)}
               onGoToCalculate={() => setView('calculate')}
+              itemMasterCount={itemMaster.length}
+              onImportItemMaster={handleImportItemMaster}
+              importingItemMaster={importingItemMaster}
             />
           )}
           {view === 'calculate' && activeFile && (
             <CalculateScreen
               activeFile={activeFile}
               companyName={companyName}
+              itemMaster={itemMaster}
               onCalculated={(item, qty) => logAudit('Calculation Executed', `Item: ${item}, Qty: ${qty}`, user.username)}
               onExport={(kind) => logAudit(`Export ${kind}`, `Item: ${activeFile.file_name}`, user.username)}
             />

@@ -46,10 +46,11 @@ export function exportToExcel(
   // ---------- Sheet 1: Production Summary ----------
 
   const summaryData = [
-    ['Bill Of Material Name', 'Standard Qty', 'Finished Good', 'Production Qty', 'Unit', 'Calculation Date'],
+    ['Bill Of Material Name', 'Standard Qty', 'Item Code', 'Finished Good', 'Production Qty', 'Unit', 'Calculation Date'],
     [
       result.summary.bom_name,
       result.summary.standard_qty,
+      result.summary.item_code || '',
       result.summary.finished_good,
       result.summary.production_qty,
       result.summary.unit,
@@ -296,6 +297,7 @@ export function exportToPdf(
     head: [[
       'Bill Of Material Name',
       'Standard Qty',
+      'Item Code',
       'Finished Good',
       'Production Qty',
       'Unit',
@@ -307,6 +309,7 @@ export function exportToPdf(
       String(
         result.summary.standard_qty
       ),
+      result.summary.item_code || '',
       result.summary.finished_good,
       String(
         result.summary.production_qty
@@ -861,6 +864,14 @@ export function printResult(
         </strong>
 
         ${result.summary.standard_qty}
+
+        &nbsp;|&nbsp;
+
+        <strong>
+          Item Code:
+        </strong>
+
+        ${result.summary.item_code || '—'}
 
         &nbsp;|&nbsp;
 

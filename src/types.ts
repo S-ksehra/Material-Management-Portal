@@ -1,5 +1,14 @@
 export type BomStatus = 'active' | 'inactive' | 'deleted';
 
+export interface ItemMasterEntry {
+  id: string;
+  item_name: string;
+  item_code: string;
+  uploaded_by: string;
+  uploaded_at: string;
+  created_at: string;
+}
+
 export interface BomSummaryRow {
   bom_name: string;
   produced_item: string;
@@ -83,6 +92,7 @@ export interface ProductionSummary {
   standard_qty: number;
   scaling_factor: number;
   calculation_date: string;
+  item_code: string;
 }
 
 export interface CalculationResult {

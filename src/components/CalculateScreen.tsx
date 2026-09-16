@@ -19,11 +19,13 @@ import type {
   BomFile,
   CalculationResult,
   MaterialType,
+  ItemMasterEntry,
 } from '@/types';
 
 import {
   calculateBom,
   getDistinctProducedItems,
+  createItemCodeResolver,
 } from '@/lib/bomEngine';
 
 import {
@@ -38,6 +40,7 @@ import { TypeBadge } from './TypeBadge';
 interface CalculateScreenProps {
   activeFile: BomFile;
   companyName: string;
+  itemMaster: ItemMasterEntry[];
   onCalculated: (
     item: string,
     qty: number
@@ -58,6 +61,7 @@ function formatNum(n: number): string {
 export function CalculateScreen({
   activeFile,
   companyName,
+  itemMaster,
   onCalculated,
   onExport,
 }: CalculateScreenProps) {
@@ -69,10 +73,20 @@ export function CalculateScreen({
     [activeFile]
   );
 
+  const resolveItemCode = useMemo(
+    () => createItemCodeResolver(itemMaster),
+    [itemMaster]
+  );
+
   const [selectedItem, setSelectedItem] =
     useState('');
 
   const [qty, setQty] = useState('');
+
+  const selectedItemCode = useMemo(
+    () => selectedItem ? resolveItemCode(selectedItem) : '',
+    [selectedItem, resolveItemCode]
+  );
 
   const [result, setResult] =
     useState<CalculationResult | null>(null);
@@ -121,10 +135,14 @@ export function CalculateScreen({
         summaryRow?.unit ??
         consRow?.unit ??
         '—',
+
+      itemCode:
+        resolveItemCode(selectedItem),
     };
   }, [
     selectedItem,
     activeFile,
+    resolveItemCode,
   ]);
 
   // ---------- Filter Produced Items ----------
@@ -134,14 +152,32 @@ export function CalculateScreen({
       search.toLowerCase();
 
     return distinctItems.filter(
-      (item) =>
-        item
-          .toLowerCase()
-          .includes(q)
+      (item) => {
+        if (
+          item
+            .toLowerCase()
+            .includes(q)
+        ) {
+          return true;
+        }
+
+        const code = resolveItemCode(item);
+        if (
+          code &&
+          code
+            .toLowerCase()
+            .includes(q)
+        ) {
+          return true;
+        }
+
+        return false;
+      }
     );
   }, [
     distinctItems,
     search,
+    resolveItemCode,
   ]);
 
   // ---------- Calculate ----------
@@ -184,7 +220,8 @@ export function CalculateScreen({
             activeFile.bom_summary,
             activeFile.consumption_details,
             selectedItem,
-            n
+            n,
+            resolveItemCode
           );
 
         setResult(res);
@@ -405,8 +442,11 @@ export function CalculateScreen({
                       : 'text-[var(--color-text-secondary)]'
                   }
                 >
-                  {selectedItem ||
-                    'Search and select item...'}
+                  {selectedItem
+                    ? (selectedItemCode
+                        ? `${selectedItemCode} | ${selectedItem}`
+                        : selectedItem)
+                    : 'Search and select item...'}
                 </span>
 
                 <ChevronDown
@@ -467,7 +507,9 @@ export function CalculateScreen({
                             200
                           )
                           .map(
-                            (item) => (
+                            (item) => {
+                              const code = resolveItemCode(item);
+                              return (
                               <button
                                 key={
                                   item
@@ -486,9 +528,9 @@ export function CalculateScreen({
                                 className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
                               >
                                 <span className="text-[var(--color-text-primary)]">
-                                  {
-                                    item
-                                  }
+                                  {code
+                                    ? `${code} | ${item}`
+                                    : item}
                                 </span>
 
                                 {selectedItem ===
@@ -501,7 +543,8 @@ export function CalculateScreen({
                                   />
                                 )}
                               </button>
-                            )
+                            );
+                            }
                           )
                       )}
 
@@ -555,7 +598,7 @@ export function CalculateScreen({
         {autoFetch && (
           <div className="mt-5 bg-[var(--color-primary-light)] rounded-lg p-4 animate-fadeIn">
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
 
               <div>
                 <p className="text-xs text-[var(--color-text-secondary)]">
@@ -581,6 +624,16 @@ export function CalculateScreen({
                   {
                     autoFetch.unit
                   }
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-[var(--color-text-secondary)]">
+                  Item Code
+                </p>
+
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  {autoFetch.itemCode || '—'}
                 </p>
               </div>
 
@@ -769,7 +822,7 @@ export function CalculateScreen({
 
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
 
                 {[
                   {
@@ -788,6 +841,13 @@ export function CalculateScreen({
                       result.summary.unit
                     }`,
                     icon: Layers,
+                  },
+                  {
+                    label:
+                      'Item Code',
+                    value:
+                      result.summary.item_code || '—',
+                    icon: CircleDot,
                   },
                   {
                     label:
