@@ -363,4 +363,4 @@ Deno.serve(async (req: Request) => {
     return jsonRes({ error: err instanceof Error ? err.message : "Internal server error." }, 500);
   }
 });
-// auth-api v2 — redeployed to fix verify_jwt setting
+// auth-api v3 — redeployed after database tables created
