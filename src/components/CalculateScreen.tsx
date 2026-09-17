@@ -947,11 +947,11 @@ export function CalculateScreen({
                       <tr>
 
                         <th className="text-left px-4 py-2 font-medium">
-                          Raw Material
+                          Item Code
                         </th>
 
                         <th className="text-left px-4 py-2 font-medium">
-                          Item Code
+                          Raw Material
                         </th>
 
                         <th className="text-left px-4 py-2 font-medium">
@@ -1006,15 +1006,15 @@ export function CalculateScreen({
                                 className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]"
                               >
 
-                                <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
-                                  {
-                                    r.item
-                                  }
-                                </td>
-
                                 <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
                                   {
                                     r.item_code || '—'
+                                  }
+                                </td>
+
+                                <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
+                                  {
+                                    r.item
                                   }
                                 </td>
 
@@ -1210,11 +1210,11 @@ export function CalculateScreen({
                       </th>
 
                       <th className="text-left px-4 py-2 font-medium">
-                        Item
+                        Item Code
                       </th>
 
                       <th className="text-left px-4 py-2 font-medium">
-                        Item Code
+                        Item
                       </th>
 
                       <th className="text-right px-4 py-2 font-medium">
@@ -1287,15 +1287,15 @@ export function CalculateScreen({
                               }
                             </td>
 
-                            <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
-                              {
-                                r.item
-                              }
-                            </td>
-
                             <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
                               {
                                 r.item_code || '—'
+                              }
+                            </td>
+
+                            <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
+                              {
+                                r.item
                               }
                             </td>
 

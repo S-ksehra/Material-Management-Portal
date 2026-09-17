@@ -79,17 +79,17 @@ function TreeRow({
         {/* Type Pill - full name with colour (exactly like your image) */}
         {typePill(node.type)}
 
-        {/* Item name */}
-        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate min-w-0">
-          {node.item}
-        </span>
-
         {/* Item Code */}
         {node.item_code && (
           <span className="shrink-0 text-xs tabular-nums text-[var(--color-text-secondary)] bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">
             {node.item_code}
           </span>
         )}
+
+        {/* Item name */}
+        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate min-w-0">
+          {node.item}
+        </span>
 
         {/* Quantity */}
         <span className="ml-auto shrink-0 text-xs tabular-nums text-[var(--color-text-secondary)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full">
