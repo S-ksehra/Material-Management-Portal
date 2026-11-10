@@ -528,8 +528,8 @@ export function validateBom(
           r.produced_item
         )
       ) {
-        errors.push(
-          `BOM Summary row ${r.row_number}: Duplicate Produced Item "${r.produced_item}" — each produced item should map to one BOM.`
+        warnings.push(
+          `BOM Summary row ${r.row_number}: Produced Item "${r.produced_item}" is mapped to multiple BOMs.`
         );
       }
 
@@ -707,27 +707,66 @@ export function calculateBom(
   consumptionDetails: ConsumptionRow[],
   producedItem: string,
   productionQty: number,
-  resolveItemCode?: (itemName: string) => string
+  resolveItemCode?: (itemName: string) => string,
+  selectedBomName?: string
 ): CalculationResult {
   // Lookup maps
+  // When a BOM name is provided, scope summary rows to that BOM.
+  // When no BOM name is provided, fall back to first-match (legacy behavior).
   const summaryByItem =
     new Map<string, BomSummaryRow>();
 
-  bomSummary.forEach((s) =>
-    summaryByItem.set(
-      s.produced_item,
-      s
-    )
-  );
+  bomSummary.forEach((s) => {
+    if (
+      selectedBomName &&
+      s.bom_name !== selectedBomName
+    ) {
+      return;
+    }
 
-  // produced_item -> consumption rows
+    if (
+      !summaryByItem.has(
+        s.produced_item
+      )
+    ) {
+      summaryByItem.set(
+        s.produced_item,
+        s
+      );
+    }
+  });
+
+  // (produced_item, bom_name) -> consumption rows
+  // When a BOM name is provided, only rows matching it are indexed for the
+  // root item. For child items we index all rows so sub-BOMs resolve by name.
   const consumptionByProduced =
     new Map<
       string,
       ConsumptionRow[]
     >();
 
+  const consumptionByKey =
+    new Map<
+      string,
+      ConsumptionRow[]
+    >();
+
   consumptionDetails.forEach((c) => {
+    const key = `${c.produced_item}__${c.bom_name}`;
+
+    if (
+      !consumptionByKey.has(key)
+    ) {
+      consumptionByKey.set(
+        key,
+        []
+      );
+    }
+
+    consumptionByKey
+      .get(key)!
+      .push(c);
+
     if (
       !consumptionByProduced.has(
         c.produced_item
@@ -762,7 +801,9 @@ export function calculateBom(
     rootSummary?.unit ?? '';
 
   const bomName =
-    rootSummary?.bom_name ?? '';
+    rootSummary?.bom_name ??
+    selectedBomName ??
+    '';
 
   const scalingFactor =
     productionQty /
@@ -806,6 +847,28 @@ export function calculateBom(
     children: [],
   };
 
+  // Resolve consumption rows for a given item+BOM.
+  // If a specific BOM name is provided, prefer the keyed lookup;
+  // fall back to the produced-item-only map.
+  const getConsumption = (
+    item: string,
+    parentBom: string
+  ): ConsumptionRow[] | undefined => {
+    const key = `${item}__${parentBom}`;
+
+    if (
+      consumptionByKey.has(key)
+    ) {
+      return consumptionByKey.get(
+        key
+      );
+    }
+
+    return consumptionByProduced.get(
+      item
+    );
+  };
+
   const buildStack: {
     node: TreeNode;
     item: string;
@@ -825,8 +888,9 @@ export function calculateBom(
       buildStack.pop()!;
 
     const cons =
-      consumptionByProduced.get(
-        frame.item
+      getConsumption(
+        frame.item,
+        frame.parentBom
       );
 
     if (!cons) continue;
@@ -850,12 +914,29 @@ export function calculateBom(
           childItem
         );
 
+      // When multiple BOMs exist for a child item,
+      // prefer the one matching the consumption row's BOM name.
+      const childSummaryByBom =
+        c.bom_name
+          ? bomSummary.find(
+              (s) =>
+                s.produced_item ===
+                  childItem &&
+                s.bom_name ===
+                  c.bom_name
+            )
+          : undefined;
+
+      const effectiveChildSummary =
+        childSummaryByBom ??
+        childSummary;
+
       const childNode: TreeNode = {
         item: childItem,
         item_code: resolveItemCode ? resolveItemCode(childItem) : '',
         unit:
           c.unit ||
-          childSummary?.unit ||
+          effectiveChildSummary?.unit ||
           '',
         quantity: childQty,
         level:
@@ -1017,6 +1098,29 @@ export function getDistinctProducedItems(
       }
     }
   );
+
+  return Array.from(set).sort(
+    (a, b) =>
+      a.localeCompare(b)
+  );
+}
+
+// ---------- BOM names for a produced item ----------
+
+export function getBomNamesForProducedItem(
+  bomSummary: BomSummaryRow[],
+  producedItem: string
+): string[] {
+  const set = new Set<string>();
+
+  bomSummary.forEach((s) => {
+    if (
+      s.produced_item === producedItem &&
+      s.bom_name
+    ) {
+      set.add(s.bom_name);
+    }
+  });
 
   return Array.from(set).sort(
     (a, b) =>

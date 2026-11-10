@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Search,
   Calculator,
@@ -25,6 +25,7 @@ import type {
 import {
   calculateBom,
   getDistinctProducedItems,
+  getBomNamesForProducedItem,
   createItemCodeResolver,
 } from '@/lib/bomEngine';
 
@@ -81,12 +82,48 @@ export function CalculateScreen({
   const [selectedItem, setSelectedItem] =
     useState('');
 
+  const [selectedBom, setSelectedBom] =
+    useState('');
+
   const [qty, setQty] = useState('');
 
   const selectedItemCode = useMemo(
     () => selectedItem ? resolveItemCode(selectedItem) : '',
     [selectedItem, resolveItemCode]
   );
+
+  // ---------- BOM Names for selected produced item ----------
+
+  const bomNamesForItem = useMemo(
+    () =>
+      selectedItem
+        ? getBomNamesForProducedItem(
+            activeFile.bom_summary,
+            selectedItem
+          )
+        : [],
+    [selectedItem, activeFile]
+  );
+
+  // Auto-select BOM when only one exists for the produced item.
+  useEffect(() => {
+    if (
+      selectedItem &&
+      bomNamesForItem.length === 1 &&
+      selectedBom !== bomNamesForItem[0]
+    ) {
+      setSelectedBom(bomNamesForItem[0]);
+    } else if (
+      selectedItem &&
+      bomNamesForItem.length > 1 &&
+      selectedBom &&
+      !bomNamesForItem.includes(selectedBom)
+    ) {
+      setSelectedBom('');
+    } else if (!selectedItem && selectedBom) {
+      setSelectedBom('');
+    }
+  }, [selectedItem, bomNamesForItem, selectedBom]);
 
   const [result, setResult] =
     useState<CalculationResult | null>(null);
@@ -98,6 +135,12 @@ export function CalculateScreen({
     useState(false);
 
   const [search, setSearch] =
+    useState('');
+
+  const [bomDropdownOpen, setBomDropdownOpen] =
+    useState(false);
+
+  const [bomSearch, setBomSearch] =
     useState('');
 
   const [error, setError] =
@@ -112,21 +155,28 @@ export function CalculateScreen({
       activeFile.bom_summary.find(
         (b) =>
           b.produced_item ===
-          selectedItem
+            selectedItem &&
+          (!selectedBom ||
+            b.bom_name ===
+              selectedBom)
       );
 
     const consRow =
       activeFile.consumption_details.find(
         (c) =>
           c.produced_item ===
-          selectedItem
+            selectedItem &&
+          (!selectedBom ||
+            c.bom_name ===
+              selectedBom)
       );
 
     return {
       bomName:
-        consRow?.bom_name ??
-        summaryRow?.bom_name ??
-        '—',
+        selectedBom ||
+        (consRow?.bom_name ??
+          summaryRow?.bom_name ??
+          '—'),
 
       standardQty:
         summaryRow?.quantity ?? 0,
@@ -141,6 +191,7 @@ export function CalculateScreen({
     };
   }, [
     selectedItem,
+    selectedBom,
     activeFile,
     resolveItemCode,
   ]);
@@ -180,6 +231,23 @@ export function CalculateScreen({
     resolveItemCode,
   ]);
 
+  // ---------- Filter BOM Names ----------
+
+  const filteredBomNames = useMemo(() => {
+    const q =
+      bomSearch.toLowerCase();
+
+    return bomNamesForItem.filter(
+      (name) =>
+        name
+          .toLowerCase()
+          .includes(q)
+    );
+  }, [
+    bomNamesForItem,
+    bomSearch,
+  ]);
+
   // ---------- Calculate ----------
 
   const handleCalculate =
@@ -189,6 +257,16 @@ export function CalculateScreen({
       if (!selectedItem) {
         setError(
           'Please select a Produced Item.'
+        );
+        return;
+      }
+
+      if (
+        bomNamesForItem.length > 1 &&
+        !selectedBom
+      ) {
+        setError(
+          'Please select a Bill of Material Name.'
         );
         return;
       }
@@ -221,7 +299,8 @@ export function CalculateScreen({
             activeFile.consumption_details,
             selectedItem,
             n,
-            resolveItemCode
+            resolveItemCode,
+            selectedBom || undefined
           );
 
         setResult(res);
@@ -415,7 +494,7 @@ export function CalculateScreen({
 
       <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-6 shadow-[var(--shadow-card)]">
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid md:grid-cols-3 gap-5">
 
           {/* Produced Item */}
 
@@ -518,6 +597,9 @@ export function CalculateScreen({
                                   setSelectedItem(
                                     item
                                   );
+                                  setSelectedBom(
+                                    ''
+                                  );
                                   setDropdownOpen(
                                     false
                                   );
@@ -546,6 +628,135 @@ export function CalculateScreen({
                             );
                             }
                           )
+                      )}
+
+                    </div>
+                  </div>
+                </>
+              )}
+
+            </div>
+          </div>
+
+          {/* Bill of Material Name */}
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+              Bill of Material Name
+            </label>
+
+            <div className="relative">
+
+              <button
+                onClick={() => {
+                  if (!selectedItem) return;
+                  setBomDropdownOpen(
+                    !bomDropdownOpen
+                  );
+                  setBomSearch('');
+                }}
+                disabled={!selectedItem}
+                className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] transition text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span
+                  className={
+                    selectedBom
+                      ? 'text-[var(--color-text-primary)]'
+                      : 'text-[var(--color-text-secondary)]'
+                  }
+                >
+                  {selectedBom
+                    ? selectedBom
+                    : bomNamesForItem.length === 0
+                      ? '—'
+                      : bomNamesForItem.length === 1
+                        ? bomNamesForItem[0]
+                        : 'Select BOM...'}
+                </span>
+
+                <ChevronDown
+                  size={18}
+                  className={`text-[var(--color-text-secondary)] transition ${
+                    bomDropdownOpen
+                      ? 'rotate-180'
+                      : ''
+                  }`}
+                />
+              </button>
+
+              {bomDropdownOpen && selectedItem && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() =>
+                      setBomDropdownOpen(
+                        false
+                      )
+                    }
+                  />
+
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-[var(--color-border-base)] rounded-lg shadow-lg max-h-72 overflow-hidden flex flex-col">
+
+                    <div className="p-2 border-b border-[var(--color-border-base)] flex items-center gap-2">
+
+                      <Search
+                        size={16}
+                        className="text-[var(--color-text-secondary)]"
+                      />
+
+                      <input
+                        autoFocus
+                        value={bomSearch}
+                        onChange={(e) =>
+                          setBomSearch(
+                            e.target.value
+                          )
+                        }
+                        placeholder="Search BOM..."
+                        className="flex-1 text-sm outline-none text-[var(--color-text-primary)]"
+                      />
+
+                    </div>
+
+                    <div className="overflow-auto">
+
+                      {filteredBomNames.length ===
+                      0 ? (
+                        <p className="p-3 text-sm text-[var(--color-text-secondary)] text-center">
+                          No BOM found.
+                        </p>
+                      ) : (
+                        filteredBomNames.map(
+                          (name) => (
+                            <button
+                              key={name}
+                              onClick={() => {
+                                setSelectedBom(
+                                  name
+                                );
+                                setBomDropdownOpen(
+                                  false
+                                );
+                                setResult(
+                                  null
+                                );
+                              }}
+                              className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
+                            >
+                              <span className="text-[var(--color-text-primary)]">
+                                {name}
+                              </span>
+
+                              {selectedBom ===
+                                name && (
+                                <Check
+                                  size={16}
+                                  className="text-[var(--color-primary)]"
+                                />
+                              )}
+                            </button>
+                          )
+                        )
                       )}
 
                     </div>
