@@ -806,7 +806,7 @@ export function CalculateScreen({
 
         {/* ---------- Auto Fetch Details ---------- */}
 
-        {autoFetch && (
+        {autoFetch && selectedBom && (
           <div className="mt-5 bg-[var(--color-primary-light)] rounded-lg p-4 animate-fadeIn">
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
