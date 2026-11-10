@@ -476,30 +476,30 @@ export function CalculateScreen({
     }, [result]);
 
   return (
-    <div className="animate-fadeIn space-y-6">
+    <div className="animate-fadeIn space-y-4">
 
       {/* ---------- Page Heading ---------- */}
 
       <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+        <h1 className="text-xl font-bold text-[var(--color-text-primary)]">
           Calculate Bill Of Material Name
         </h1>
 
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          Select a produced item and required quantity.
+        <p className="text-xs text-[var(--color-text-secondary)]">
+          Select a produced item, BOM name, and required quantity.
         </p>
       </div>
 
       {/* ---------- Input Card ---------- */}
 
-      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-6 shadow-[var(--shadow-card)]">
+      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-4 shadow-[var(--shadow-card)]">
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-3 gap-4">
 
           {/* Produced Item */}
 
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+            <label className="block text-xs font-medium text-[var(--color-text-primary)] mb-1">
               Produced Item
             </label>
 
@@ -512,7 +512,7 @@ export function CalculateScreen({
                   );
                   setSearch('');
                 }}
-                className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] transition text-left"
+                className="w-full flex items-center justify-between px-3 py-2 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] transition text-left"
               >
                 <span
                   className={
@@ -529,7 +529,7 @@ export function CalculateScreen({
                 </span>
 
                 <ChevronDown
-                  size={18}
+                  size={16}
                   className={`text-[var(--color-text-secondary)] transition ${
                     dropdownOpen
                       ? 'rotate-180'
@@ -549,9 +549,9 @@ export function CalculateScreen({
                     }
                   />
 
-                  <div className="absolute z-20 mt-1 w-full bg-white border border-[var(--color-border-base)] rounded-lg shadow-lg max-h-72 overflow-hidden flex flex-col">
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-[var(--color-border-base)] rounded-lg shadow-lg max-h-64 overflow-hidden flex flex-col">
 
-                    <div className="p-2 border-b border-[var(--color-border-base)] flex items-center gap-2">
+                    <div className="p-1.5 border-b border-[var(--color-border-base)] flex items-center gap-2">
 
                       <Search
                         size={16}
@@ -576,7 +576,7 @@ export function CalculateScreen({
 
                       {filteredItems.length ===
                       0 ? (
-                        <p className="p-3 text-sm text-[var(--color-text-secondary)] text-center">
+                        <p className="p-2.5 text-xs text-[var(--color-text-secondary)] text-center">
                           No items found.
                         </p>
                       ) : (
@@ -607,7 +607,7 @@ export function CalculateScreen({
                                     null
                                   );
                                 }}
-                                className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
+                                className="w-full flex items-center justify-between px-3 py-1.5 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
                               >
                                 <span className="text-[var(--color-text-primary)]">
                                   {code
@@ -619,7 +619,7 @@ export function CalculateScreen({
                                   item && (
                                   <Check
                                     size={
-                                      16
+                                      14
                                     }
                                     className="text-[var(--color-primary)]"
                                   />
@@ -641,7 +641,7 @@ export function CalculateScreen({
           {/* Bill of Material Name */}
 
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+            <label className="block text-xs font-medium text-[var(--color-text-primary)] mb-1">
               Bill of Material Name
             </label>
 
@@ -656,7 +656,7 @@ export function CalculateScreen({
                   setBomSearch('');
                 }}
                 disabled={!selectedItem}
-                className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] transition text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between px-3 py-2 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] transition text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span
                   className={
@@ -675,7 +675,7 @@ export function CalculateScreen({
                 </span>
 
                 <ChevronDown
-                  size={18}
+                  size={16}
                   className={`text-[var(--color-text-secondary)] transition ${
                     bomDropdownOpen
                       ? 'rotate-180'
@@ -695,9 +695,9 @@ export function CalculateScreen({
                     }
                   />
 
-                  <div className="absolute z-20 mt-1 w-full bg-white border border-[var(--color-border-base)] rounded-lg shadow-lg max-h-72 overflow-hidden flex flex-col">
+                  <div className="absolute z-20 mt-1 w-full bg-white border border-[var(--color-border-base)] rounded-lg shadow-lg max-h-64 overflow-hidden flex flex-col">
 
-                    <div className="p-2 border-b border-[var(--color-border-base)] flex items-center gap-2">
+                    <div className="p-1.5 border-b border-[var(--color-border-base)] flex items-center gap-2">
 
                       <Search
                         size={16}
@@ -722,7 +722,7 @@ export function CalculateScreen({
 
                       {filteredBomNames.length ===
                       0 ? (
-                        <p className="p-3 text-sm text-[var(--color-text-secondary)] text-center">
+                        <p className="p-2.5 text-xs text-[var(--color-text-secondary)] text-center">
                           No BOM found.
                         </p>
                       ) : (
@@ -741,7 +741,7 @@ export function CalculateScreen({
                                   null
                                 );
                               }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
+                              className="w-full flex items-center justify-between px-3 py-1.5 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
                             >
                               <span className="text-[var(--color-text-primary)]">
                                 {name}
@@ -750,7 +750,7 @@ export function CalculateScreen({
                               {selectedBom ===
                                 name && (
                                 <Check
-                                  size={16}
+                                  size={14}
                                   className="text-[var(--color-primary)]"
                                 />
                               )}
@@ -770,7 +770,7 @@ export function CalculateScreen({
           {/* Production Quantity */}
 
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+            <label className="block text-xs font-medium text-[var(--color-text-primary)] mb-1">
               Production Quantity
             </label>
 
@@ -788,11 +788,11 @@ export function CalculateScreen({
                   setResult(null);
                 }}
                 placeholder="Enter quantity..."
-                className="w-full px-4 py-2.5 pr-16 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition text-[var(--color-text-primary)]"
+                className="w-full px-3 py-2 pr-14 bg-white border border-[var(--color-border-base)] rounded-lg text-sm hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition text-[var(--color-text-primary)]"
               />
 
               {autoFetch && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--color-text-secondary)] font-medium">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--color-text-secondary)] font-medium">
                   {
                     autoFetch.unit
                   }
@@ -807,16 +807,16 @@ export function CalculateScreen({
         {/* ---------- Auto Fetch Details ---------- */}
 
         {autoFetch && selectedBom && (
-          <div className="mt-5 bg-[var(--color-primary-light)] rounded-lg p-4 animate-fadeIn">
+          <div className="mt-3 bg-[var(--color-primary-light)] rounded-lg p-3 animate-fadeIn">
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
 
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
-                  Bill Of Material Name
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                  BOM Name
                 </p>
 
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">
                   {
                     autoFetch.bomName
                   }
@@ -824,11 +824,11 @@ export function CalculateScreen({
               </div>
 
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
                   Standard Qty
                 </p>
 
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                   {formatNum(
                     autoFetch.standardQty
                   )}{' '}
@@ -839,21 +839,21 @@ export function CalculateScreen({
               </div>
 
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
                   Item Code
                 </p>
 
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                   {autoFetch.itemCode || '—'}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
                   Produced Item
                 </p>
 
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">
                   {
                     selectedItem
                   }
@@ -861,11 +861,11 @@ export function CalculateScreen({
               </div>
 
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
                   Requested Qty
                 </p>
 
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                <p className="text-xs font-semibold text-[var(--color-text-primary)]">
                   {qty &&
                   !isNaN(
                     parseFloat(
@@ -891,14 +891,14 @@ export function CalculateScreen({
         {/* ---------- Error ---------- */}
 
         {error && (
-          <div className="mt-4 text-sm text-[var(--color-error)] bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+          <div className="mt-3 text-xs text-[var(--color-error)] bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
             {error}
           </div>
         )}
 
         {/* ---------- Calculate Button ---------- */}
 
-        <div className="mt-5 flex justify-end">
+        <div className="mt-3 flex justify-end">
 
           <button
             onClick={
@@ -907,16 +907,16 @@ export function CalculateScreen({
             disabled={
               calculating
             }
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-60 text-white rounded-lg text-sm font-semibold transition shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-60 text-white rounded-lg text-sm font-semibold transition shadow-sm"
           >
             {calculating ? (
               <Loader2
-                size={18}
+                size={16}
                 className="animate-spin"
               />
             ) : (
               <Calculator
-                size={18}
+                size={16}
               />
             )}
 
@@ -930,14 +930,14 @@ export function CalculateScreen({
       {/* ---------- Loading ---------- */}
 
       {calculating && (
-        <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-12 text-center shadow-[var(--shadow-card)]">
+        <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-8 text-center shadow-[var(--shadow-card)]">
 
           <Loader2
-            className="animate-spin text-[var(--color-primary)] mx-auto mb-3"
-            size={32}
+            className="animate-spin text-[var(--color-primary)] mx-auto mb-2"
+            size={28}
           />
 
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <p className="text-xs text-[var(--color-text-secondary)]">
             Calculating material requirements...
           </p>
 
@@ -948,23 +948,23 @@ export function CalculateScreen({
 
       {!result &&
         !calculating && (
-          <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-12 text-center shadow-[var(--shadow-card)]">
+          <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-8 text-center shadow-[var(--shadow-card)]">
 
-            <div className="w-16 h-16 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center mx-auto mb-3">
 
               <Calculator
-                size={28}
+                size={24}
                 className="text-[var(--color-primary)]"
               />
 
             </div>
 
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-0.5">
               No calculation yet
             </h3>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Select a produced item, enter the production quantity, and click Calculate BOM.
+            <p className="text-xs text-[var(--color-text-secondary)]">
+              Select a produced item, BOM name, enter quantity, and click Calculate BOM.
             </p>
 
           </div>
@@ -974,7 +974,7 @@ export function CalculateScreen({
 
       {result &&
         !calculating && (
-          <div className="space-y-5">
+          <div className="space-y-4">
 
             {/* ---------- Export Buttons ---------- */}
 
@@ -984,10 +984,10 @@ export function CalculateScreen({
                 onClick={
                   handleExportExcel
                 }
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-success)] hover:bg-green-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-success)] hover:bg-green-700 text-white rounded-lg text-xs font-medium transition shadow-sm"
               >
                 <FileDown
-                  size={16}
+                  size={14}
                 />
                 Excel
               </button>
@@ -996,10 +996,10 @@ export function CalculateScreen({
                 onClick={
                   handleExportPdf
                 }
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-lg text-sm font-medium transition shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-lg text-xs font-medium transition shadow-sm"
               >
                 <FileText
-                  size={16}
+                  size={14}
                 />
                 PDF
               </button>
@@ -1008,10 +1008,10 @@ export function CalculateScreen({
                 onClick={
                   handlePrint
                 }
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary-light)] border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-sm font-medium transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary-light)] border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-xs font-medium transition"
               >
                 <Printer
-                  size={16}
+                  size={14}
                 />
                 Print
               </button>
@@ -1022,18 +1022,18 @@ export function CalculateScreen({
 
             <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
 
-              <div className="bg-[var(--color-primary)] px-5 py-3">
+              <div className="bg-[var(--color-primary)] px-4 py-2">
 
-                <h2 className="text-white font-semibold flex items-center gap-2">
+                <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
                   <Package
-                    size={18}
+                    size={16}
                   />
                   Production Summary
                 </h2>
 
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-3 p-3">
 
                 {[
                   {
@@ -1107,24 +1107,24 @@ export function CalculateScreen({
 
             {/* ---------- Tree + Raw Material Summary ---------- */}
 
-            <div className="grid lg:grid-cols-2 gap-5">
+            <div className="grid lg:grid-cols-2 gap-4">
 
               {/* Material Hierarchy */}
 
               <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
 
-                <div className="bg-[var(--color-primary)] px-5 py-3">
+                <div className="bg-[var(--color-primary)] px-4 py-2">
 
-                  <h2 className="text-white font-semibold flex items-center gap-2">
+                  <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
                     <Layers
-                      size={18}
+                      size={16}
                     />
                     Material Hierarchy
                   </h2>
 
                 </div>
 
-                <div className="p-4">
+                <div className="p-3">
                   <ExplosionTree
                     tree={
                       result.tree
@@ -1138,42 +1138,42 @@ export function CalculateScreen({
 
               <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
 
-                <div className="bg-[#92400E] px-5 py-3">
+                <div className="bg-[#92400E] px-4 py-2">
 
-                  <h2 className="text-white font-semibold flex items-center gap-2">
+                  <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
                     <Boxes
-                      size={18}
+                      size={16}
                     />
                     Raw Material Summary
                   </h2>
 
                 </div>
 
-                <div className="overflow-auto max-h-[500px]">
+                <div className="overflow-auto max-h-[400px]">
 
-                  <table className="w-full text-sm">
+                  <table className="w-full text-xs">
 
                     <thead className="sticky top-0 bg-[#92400E] text-white">
 
                       <tr>
 
-                        <th className="text-left px-4 py-2 font-medium">
+                        <th className="text-left px-3 py-1.5 font-medium">
                           Item Code
                         </th>
 
-                        <th className="text-left px-4 py-2 font-medium">
+                        <th className="text-left px-3 py-1.5 font-medium">
                           Raw Material
                         </th>
 
-                        <th className="text-left px-4 py-2 font-medium">
+                        <th className="text-left px-3 py-1.5 font-medium">
                           Parent BOM
                         </th>
 
-                        <th className="text-right px-4 py-2 font-medium">
+                        <th className="text-right px-3 py-1.5 font-medium">
                           Total Qty
                         </th>
 
-                        <th className="text-left px-4 py-2 font-medium">
+                        <th className="text-left px-3 py-1.5 font-medium">
                           Unit
                         </th>
 
@@ -1193,7 +1193,7 @@ export function CalculateScreen({
                             colSpan={
                               5
                             }
-                            className="text-center py-8 text-[var(--color-text-secondary)]"
+                            className="text-center py-6 text-[var(--color-text-secondary)]"
                           >
                             No raw materials.
                           </td>
@@ -1217,31 +1217,31 @@ export function CalculateScreen({
                                 className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]"
                               >
 
-                                <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
                                   {
                                     r.item_code || '—'
                                   }
                                 </td>
 
-                                <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
+                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
                                   {
                                     r.item
                                   }
                                 </td>
 
-                                <td className="px-4 py-2 text-[var(--color-text-secondary)]">
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
                                   {
                                     r.parent_bom
                                   }
                                 </td>
 
-                                <td className="px-4 py-2 text-right tabular-nums text-[var(--color-text-primary)]">
+                                <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)]">
                                   {formatNum(
                                     r.total_qty
                                   )}
                                 </td>
 
-                                <td className="px-4 py-2 text-[var(--color-text-secondary)]">
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
                                   {
                                     r.unit
                                   }
@@ -1268,11 +1268,11 @@ export function CalculateScreen({
 
             <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
 
-              <div className="bg-[var(--color-primary)] px-5 py-3 flex items-center gap-2">
+              <div className="bg-[var(--color-primary)] px-4 py-2 flex items-center gap-2">
 
-                <h2 className="text-white font-semibold flex items-center gap-2">
+                <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
                   <Boxes
-                    size={18}
+                    size={16}
                   />
                   Material Requirement
                 </h2>
@@ -1292,11 +1292,11 @@ export function CalculateScreen({
 
               {/* Filters */}
 
-              <div className="p-4 bg-[var(--color-primary-light)] border-b border-[var(--color-border-base)] flex flex-wrap items-center gap-3">
+              <div className="p-3 bg-[var(--color-primary-light)] border-b border-[var(--color-border-base)] flex flex-wrap items-center gap-2">
 
-                <div className="flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)]">
+                <div className="flex items-center gap-1 text-xs text-[var(--color-text-secondary)]">
                   <Filter
-                    size={14}
+                    size={13}
                   />
                   Filters:
                 </div>
@@ -1311,7 +1311,7 @@ export function CalculateScreen({
                     )
                   }
                   placeholder="Item..."
-                  className="px-3 py-1.5 text-sm bg-white border border-[var(--color-border-base)] rounded-md w-32 outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md w-28 outline-none focus:border-[var(--color-primary)]"
                 />
 
                 <select
@@ -1326,7 +1326,7 @@ export function CalculateScreen({
                         | 'all'
                     )
                   }
-                  className="px-3 py-1.5 text-sm bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
                 >
                   <option value="all">
                     All Types
@@ -1356,7 +1356,7 @@ export function CalculateScreen({
                       e.target.value
                     )
                   }
-                  className="px-3 py-1.5 text-sm bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
                 >
                   <option value="all">
                     All Units
@@ -1377,8 +1377,8 @@ export function CalculateScreen({
                 <div className="relative ml-auto">
 
                   <Search
-                    size={14}
-                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]"
+                    size={13}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]"
                   />
 
                   <input
@@ -1391,7 +1391,7 @@ export function CalculateScreen({
                       )
                     }
                     placeholder="Global search..."
-                    className="pl-8 pr-3 py-1.5 text-sm bg-white border border-[var(--color-border-base)] rounded-md w-44 outline-none focus:border-[var(--color-primary)]"
+                    className="pl-7 pr-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md w-36 outline-none focus:border-[var(--color-primary)]"
                   />
 
                 </div>
@@ -1400,39 +1400,39 @@ export function CalculateScreen({
 
               {/* Requirement Table */}
 
-              <div className="overflow-auto max-h-[600px]">
+              <div className="overflow-auto max-h-[480px]">
 
-                <table className="w-full text-sm">
+                <table className="w-full text-xs">
 
                   <thead className="sticky top-0 bg-[var(--color-primary)] text-white">
 
                     <tr>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Level
                       </th>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Type
                       </th>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Parent BOM
                       </th>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Item Code
                       </th>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Item
                       </th>
 
-                      <th className="text-right px-4 py-2 font-medium">
+                      <th className="text-right px-3 py-1.5 font-medium">
                         Required Qty
                       </th>
 
-                      <th className="text-left px-4 py-2 font-medium">
+                      <th className="text-left px-3 py-1.5 font-medium">
                         Unit
                       </th>
 
@@ -1451,7 +1451,7 @@ export function CalculateScreen({
                           colSpan={
                             7
                           }
-                          className="text-center py-8 text-[var(--color-text-secondary)]"
+                          className="text-center py-6 text-[var(--color-text-secondary)]"
                         >
                           No rows match filters.
                         </td>
@@ -1478,13 +1478,13 @@ export function CalculateScreen({
                             }`}
                           >
 
-                            <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
+                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
                               {
                                 r.level
                               }
                             </td>
 
-                            <td className="px-4 py-2">
+                            <td className="px-3 py-1.5">
                               <TypeBadge
                                 type={
                                   r.type
@@ -1492,31 +1492,31 @@ export function CalculateScreen({
                               />
                             </td>
 
-                            <td className="px-4 py-2 text-[var(--color-text-secondary)]">
+                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
                               {
                                 r.parent_bom
                               }
                             </td>
 
-                            <td className="px-4 py-2 text-[var(--color-text-secondary)] tabular-nums">
+                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
                               {
                                 r.item_code || '—'
                               }
                             </td>
 
-                            <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">
+                            <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
                               {
                                 r.item
                               }
                             </td>
 
-                            <td className="px-4 py-2 text-right tabular-nums text-[var(--color-text-primary)] font-medium">
+                            <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)] font-medium">
                               {formatNum(
                                 r.required_qty
                               )}
                             </td>
 
-                            <td className="px-4 py-2 text-[var(--color-text-secondary)]">
+                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
                               {
                                 r.unit
                               }
