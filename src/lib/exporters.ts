@@ -1205,169 +1205,317 @@ export function printStageWise(
   result: CalculationResult,
   companyName: string
 ): void {
-  const stagePages = STAGE_NAMES.flatMap((stage) => {
-    const stageSummaries = activeFile.bom_summary.filter(
-      (summary) =>
-        summary.produced_item ===
-          result.summary.finished_good &&
-        bomHasStage(summary.bom_name, stage)
-    );
+  type StagePage = {
+    stage: string;
+    summary: BomFile['bom_summary'][number];
+    materials: Array<{
+      item: string;
+      quantity: number;
+      unit: string;
+    }>;
+  };
 
-    if (stageSummaries.length === 0) return [];
+  const stagePages: StagePage[] = [];
+  const usedBomNames = new Set<string>();
+  const producedItem = result.summary.finished_good;
+  const matchingSummaries = activeFile.bom_summary.filter(
+    (summary) => summary.produced_item === producedItem
+  );
 
-    const stageSummary = stageSummaries[0];
-    const stageBomNames = new Set(
-      stageSummaries.map((summary) => summary.bom_name)
+  const materialsFor = (
+    summaries: BomFile['bom_summary']
+  ): StagePage['materials'] => {
+    const bomNames = new Set(
+      summaries.map((summary) => summary.bom_name)
     );
-    const stageMaterials = activeFile.consumption_details
+    const summary = summaries[0];
+    const scale =
+      result.summary.production_qty /
+      (summary?.quantity || 1);
+
+    return activeFile.consumption_details
       .filter(
         (row) =>
-          row.produced_item ===
-            result.summary.finished_good &&
-          stageBomNames.has(row.bom_name)
+          row.produced_item === producedItem &&
+          bomNames.has(row.bom_name)
       )
       .map((row) => ({
         item: row.consumption_item,
-        quantity:
-          row.quantity *
-          (result.summary.production_qty /
-            (stageSummary.quantity || 1)),
+        quantity: row.quantity * scale,
         unit: row.unit,
       }));
+  };
 
-    return [{
+  for (const stage of STAGE_NAMES) {
+    const stageSummaries = matchingSummaries.filter(
+      (summary) => bomHasStage(summary.bom_name, stage)
+    );
+
+    if (stageSummaries.length === 0) continue;
+
+    stageSummaries.forEach((summary) => {
+      usedBomNames.add(summary.bom_name);
+    });
+
+    stagePages.push({
       stage,
-      summary: stageSummary,
-      materials: stageMaterials,
-    }];
-  });
-
-  const win = window.open(
-    '',
-    '_blank',
-    'width=1280,height=800'
-  );
-
-  if (!win) return;
-
-  if (stagePages.length === 0) {
-    win.document.write(`
-      <html><body style="font-family:Arial,sans-serif;padding:32px">
-        No matching stage BOMs found for this produced item.
-      </body></html>`);
-    win.document.close();
-    return;
+      summary: stageSummaries[0],
+      materials: materialsFor(stageSummaries),
+    });
   }
 
-  const pages = stagePages
-    .map((page, index) =>
-      renderJobCardPage(
-        companyName,
-        page.stage,
-        page.summary.bom_name,
-        result.summary.finished_good,
-        result.summary.item_code || '',
-        result.summary.production_qty,
-        page.summary.quantity,
-        page.summary.unit,
-        page.materials,
-        index === stagePages.length - 1
+  const unmatchedSummaries = matchingSummaries.filter(
+    (summary) =>
+      !usedBomNames.has(summary.bom_name) &&
+      !STAGE_NAMES.some((stage) =>
+        bomHasStage(summary.bom_name, stage)
       )
-    )
-    .join('');
+  );
+  const uniqueUnmatched = new Map<string, BomFile['bom_summary'][number]>();
 
-  win.document.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Stage Wise Job Cards</title>
-        <style>
-          * { box-sizing: border-box; }
-          @page { size: landscape; margin: 10mm; }
-          body {
-            margin: 0;
-            color: #111;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
-          }
-          .job-card { min-height: 180mm; }
-          .job-title {
-            background: #193754;
-            color: #fff;
-            font-size: 19px;
-            font-weight: 700;
-            text-align: center;
-            padding: 4px 8px;
-            margin-bottom: 8px;
-          }
-          .job-title span { padding: 0 8px; }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-          }
-          td, th { border: 1px solid #222; }
-          .details { font-size: 11px; }
-          .details td { height: 18px; padding: 1px 3px; vertical-align: top; }
-          .label { width: 12%; }
-          .details .label { background: #f1f1f1; }
-          .details .label-col { width: 12%; }
-          .details .value-col { width: 68%; }
-          .details .side-label-col { width: 12%; }
-          .details .side-value-col { width: 8%; }
-          .manual-label, .manual-value { color: #111; }
-          .materials, .production { margin-top: 12px; }
-          caption {
-            border: 1px solid #222;
-            border-bottom: 0;
-            background: #dbe8ed;
-            color: #244c54;
-            font-weight: 700;
-            text-align: left;
-            padding: 2px 4px;
-          }
-          th {
-            background: #193754;
-            color: #fff;
-            font-weight: 700;
-            padding: 2px 3px;
-            text-align: center;
-          }
-          .materials th:nth-child(1) { width: 80%; text-align: left; }
-          .materials th:nth-child(2) { width: 12%; text-align: right; }
-          .materials th:nth-child(3) { width: 8%; text-align: left; }
-          .materials td { height: 26px; padding: 3px; }
-          .materials td.qty { text-align: right; }
-          .empty { text-align: center; color: #666; }
-          .production { font-size: 10px; }
-          .production th { white-space: nowrap; }
-          .production td { height: 20px; padding: 2px; text-align: center; }
-          .production .entry-row td { height: 76px; background: #eef6ff; }
-          .production .total-row td { background: #dbe8ed; font-weight: 700; }
-          .production .total-row td:first-child { text-align: left; }
-          .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin: 28px 3px 0;
-            font-size: 11px;
-          }
-          .signatures b {
-            display: inline-block;
-            width: 120px;
-            border-bottom: 1px solid #222;
-            height: 12px;
-            vertical-align: bottom;
-          }
-          @media print {
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          }
-        </style>
-      </head>
-      <body>${pages}
-        <script>
-          window.onload = function () { window.print(); };
-        </script>
-      </body>
-    </html>`);
-  win.document.close();
+  unmatchedSummaries.forEach((summary) => {
+    if (!uniqueUnmatched.has(summary.bom_name)) {
+      uniqueUnmatched.set(summary.bom_name, summary);
+    }
+  });
+
+  uniqueUnmatched.forEach((summary) => {
+    stagePages.push({
+      stage:
+        summary.bom_name.split('|')[1]?.trim() ||
+        'UNMATCHED STAGE',
+      summary,
+      materials: materialsFor([summary]),
+    });
+  });
+
+  if (stagePages.length === 0 && matchingSummaries.length > 0) {
+    const fallbackSummary = matchingSummaries[0];
+
+    stagePages.push({
+      stage:
+        fallbackSummary.bom_name.split('|')[1]?.trim() ||
+        'UNMATCHED STAGE',
+      summary: fallbackSummary,
+      materials: materialsFor([fallbackSummary]),
+    });
+  }
+
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+  });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 10;
+  const contentW = pageW - margin * 2;
+
+  stagePages.forEach((page, pageIndex) => {
+    if (pageIndex > 0) doc.addPage();
+
+    doc.setFillColor(25, 55, 84);
+    doc.rect(margin, 8, contentW, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text(
+      `${companyName || 'SAKSHI LAMINATES'} | ${page.stage} JOB CARD`,
+      pageW / 2,
+      13.5,
+      { align: 'center' }
+    );
+
+    const customer = getCustomerName(page.summary.bom_name);
+    const cutSpec = getCutSpec(producedItem);
+    const details = [
+      ['Customer', customer, 'Job Card No.', ''],
+      ['FG Product', producedItem, 'Job Card Date', ''],
+      ['FG Code', result.summary.item_code || '', 'Production Order', ''],
+      ['FG Order Qty', printNumber(result.summary.production_qty), 'Production Date', ''],
+      ['Output Product', producedItem, 'Machine', ''],
+      ['Output UOM', page.summary.unit, 'Supervisor', ''],
+      ['Target Output', printNumber(result.summary.production_qty), '', ''],
+      ['BOM / Reference', page.summary.bom_name, '', ''],
+      ['Cut / spec', cutSpec, '', ''],
+    ];
+
+    autoTable(doc, {
+      startY: 19,
+      body: details,
+      theme: 'grid',
+      margin: { left: margin, right: margin },
+      styles: {
+        font: 'helvetica',
+        fontSize: 8.5,
+        textColor: [17, 17, 17],
+        cellPadding: 1.1,
+        minCellHeight: 5.7,
+        lineColor: [34, 34, 34],
+        lineWidth: 0.25,
+      },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 172 },
+        2: { cellWidth: 34 },
+        3: { cellWidth: contentW - 35 - 172 - 34 },
+      },
+      didParseCell: (data) => {
+        if (
+          data.section === 'body' &&
+          (data.column.index === 0 || data.column.index === 2)
+        ) {
+          data.cell.styles.fillColor = [241, 241, 241];
+        }
+      },
+    });
+
+    let y =
+      (doc as unknown as { lastAutoTable: { finalY: number } })
+        .lastAutoTable.finalY + 5;
+
+    const addSectionTitle = (title: string): void => {
+      doc.setFillColor(219, 232, 237);
+      doc.setDrawColor(34, 34, 34);
+      doc.rect(margin, y, contentW, 6, 'FD');
+      doc.setTextColor(36, 76, 84);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.text(title, margin + 1, y + 4.2);
+      y += 6;
+    };
+
+    addSectionTitle('PLANNED MATERIALS (from consolidated BOM)');
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Material', 'Quantity', 'Unit']],
+      body:
+        page.materials.length > 0
+          ? page.materials.map((material) => [
+              material.item,
+              printNumber(material.quantity),
+              material.unit,
+            ])
+          : [['No planned materials', '', '']],
+      theme: 'grid',
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 8,
+        cellPadding: 1.4,
+        lineColor: [34, 34, 34],
+        lineWidth: 0.25,
+      },
+      headStyles: {
+        fillColor: [25, 55, 84],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: contentW - 60 },
+        1: { cellWidth: 35, halign: 'right' },
+        2: { cellWidth: 25 },
+      },
+    });
+
+    y =
+      (doc as unknown as { lastAutoTable: { finalY: number } })
+        .lastAutoTable.finalY + 5;
+
+    addSectionTitle('DAILY / SHIFT-WISE PRODUCTION');
+
+    const productionHeaders = [
+      'Date',
+      'Shift',
+      'Reel consumed (kg)',
+      'Good output',
+      'Waste / reject',
+      'Total used',
+      'Cumulative good',
+      'Balance target',
+      'Remarks',
+      'Sign',
+    ];
+    const blankProductionRow = productionHeaders.map(() => '');
+    const totalProductionRow = [
+      'TOTAL / STATUS',
+      '',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '',
+      '',
+      '',
+    ];
+
+    autoTable(doc, {
+      startY: y,
+      head: [productionHeaders],
+      body: [blankProductionRow, totalProductionRow],
+      theme: 'grid',
+      margin: { left: margin, right: margin },
+      styles: {
+        fontSize: 6.8,
+        cellPadding: 1.2,
+        halign: 'center',
+        lineColor: [34, 34, 34],
+        lineWidth: 0.25,
+      },
+      headStyles: {
+        fillColor: [25, 55, 84],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      bodyStyles: { minCellHeight: 5.5 },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 16 },
+        2: { cellWidth: 29 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 24 },
+        5: { cellWidth: 21 },
+        6: { cellWidth: 27 },
+        7: { cellWidth: 25 },
+        8: { cellWidth: 49 },
+        9: { cellWidth: contentW - 235 },
+      },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.row.index === 0) {
+          data.cell.styles.minCellHeight = 25;
+          data.cell.styles.fillColor = [238, 246, 255];
+        }
+        if (data.section === 'body' && data.row.index === 1) {
+          data.cell.styles.fillColor = [219, 232, 237];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        if (
+          data.section === 'body' &&
+          data.row.index === 1 &&
+          data.column.index === 0
+        ) {
+          data.cell.styles.halign = 'left';
+        }
+      },
+    });
+
+    y =
+      (doc as unknown as { lastAutoTable: { finalY: number } })
+        .lastAutoTable.finalY + 11;
+    doc.setTextColor(17, 17, 17);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.text('Operator:', margin + 1, y);
+    doc.line(margin + 17, y + 0.5, margin + 47, y + 0.5);
+    doc.text('Supervisor:', pageW / 2 - 30, y);
+    doc.line(pageW / 2 - 10, y + 0.5, pageW / 2 + 20, y + 0.5);
+    doc.text('Transfer checked:', pageW - 70, y);
+    doc.line(pageW - 35, y + 0.5, pageW - margin, y + 0.5);
+  });
+
+  if (stagePages.length > 0) {
+    doc.save(
+      `Stage_Wise_Job_Cards_${result.summary.finished_good}_${Date.now()}.pdf`
+    );
+  }
 }
