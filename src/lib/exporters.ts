@@ -1,7 +1,11 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { CalculationResult, TreeNode } from '@/types';
+import type {
+  BomFile,
+  CalculationResult,
+  TreeNode,
+} from '@/types';
 
 const PRIMARY = '#761137';
 const PRIMARY_HOVER = '#5E0D2B';
@@ -983,5 +987,387 @@ export function printResult(
     </html>
   `);
 
+  win.document.close();
+}
+
+// ---------- Stage-wise Job Card Print ----------
+
+const STAGE_NAMES = [
+  'SHEET CUTTER',
+  'CORRUGATION',
+  'PASTING',
+  'DIE CUTTING',
+  'PRINTING & STITCHING',
+  'FINISHED GOODS',
+] as const;
+
+function escapePrintHtml(value: string | number): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function printNumber(value: number): string {
+  return Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(4).replace(/\.?0+$/, '');
+}
+
+function bomHasStage(
+  bomName: string,
+  stage: string
+): boolean {
+  return bomName
+    .split('|')
+    .some(
+      (part) =>
+        part.trim().toLowerCase() ===
+        stage.toLowerCase()
+    );
+}
+
+function getCustomerName(bomName: string): string {
+  return bomName.split('|')[0]?.trim() || '';
+}
+
+function getCutSpec(producedItem: string): string {
+  return producedItem.match(/\[([^\]]+)\]/)?.[1]?.trim() || '';
+}
+
+function renderJobCardPage(
+  companyName: string,
+  stage: string,
+  bomName: string,
+  producedItem: string,
+  itemCode: string,
+  orderQuantity: number,
+  standardQuantity: number,
+  unit: string,
+  materials: Array<{
+    item: string;
+    quantity: number;
+    unit: string;
+  }>,
+  isLast: boolean
+): string {
+  const targetOutput =
+    standardQuantity > 0
+      ? orderQuantity / standardQuantity
+      : orderQuantity;
+
+  const plannedRows = materials.length
+    ? materials
+        .map(
+          (material) => `
+            <tr>
+              <td>${escapePrintHtml(material.item)}</td>
+              <td class="qty">${escapePrintHtml(printNumber(material.quantity))}</td>
+              <td>${escapePrintHtml(material.unit)}</td>
+            </tr>`
+        )
+        .join('')
+    : `
+            <tr>
+              <td colspan="3" class="empty">No planned materials</td>
+            </tr>`;
+
+  const pageBreak = isLast
+    ? ''
+    : ' page-break-after: always;';
+
+  return `
+    <section class="job-card" style="${pageBreak}">
+      <header class="job-title">
+        ${escapePrintHtml(companyName || 'SAKSHI LAMINATES')}
+        <span>|</span>
+        ${escapePrintHtml(stage)} JOB CARD
+      </header>
+
+      <table class="details">
+        <colgroup>
+          <col class="label-col" />
+          <col class="value-col" />
+          <col class="side-label-col" />
+          <col class="side-value-col" />
+        </colgroup>
+        <tbody>
+          <tr>
+            <td class="label">Customer</td>
+            <td>${escapePrintHtml(getCustomerName(bomName))}</td>
+            <td class="label manual-label">Job Card No.</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">FG Product</td>
+            <td>${escapePrintHtml(producedItem)}</td>
+            <td class="label manual-label">Job Card Date</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">FG Code</td>
+            <td>${escapePrintHtml(itemCode)}</td>
+            <td class="label manual-label">Production Order</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">FG Order Qty</td>
+            <td>${escapePrintHtml(printNumber(orderQuantity))}</td>
+            <td class="label manual-label">Production Date</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">Output Product</td>
+            <td>${escapePrintHtml(producedItem)}</td>
+            <td class="label manual-label">Machine</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">Output UOM</td>
+            <td>${escapePrintHtml(unit)}</td>
+            <td class="label manual-label">Supervisor</td>
+            <td class="manual-value"></td>
+          </tr>
+          <tr>
+            <td class="label">Target Output</td>
+            <td>${escapePrintHtml(printNumber(targetOutput))}</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="label">BOM / Reference</td>
+            <td>${escapePrintHtml(bomName)}</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="label">Cut / spec</td>
+            <td>${escapePrintHtml(getCutSpec(producedItem))}</td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="materials">
+        <caption>PLANNED MATERIALS (from consolidated BOM)</caption>
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+          </tr>
+        </thead>
+        <tbody>${plannedRows}</tbody>
+      </table>
+
+      <table class="production">
+        <caption>DAILY / SHIFT-WISE PRODUCTION</caption>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Reel consumed (kg)</th>
+            <th>Good output</th>
+            <th>Waste / reject</th>
+            <th>Total used</th>
+            <th>Cumulative good</th>
+            <th>Balance target</th>
+            <th>Remarks</th>
+            <th>Sign</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="entry-row">
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="2">TOTAL / STATUS</td>
+            <td>0</td><td>0</td><td>0</td><td>0</td>
+            <td>0</td><td></td><td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="signatures">
+        <span>Operator: <b></b></span>
+        <span>Supervisor: <b></b></span>
+        <span>Transfer checked: <b></b></span>
+      </div>
+    </section>`;
+}
+
+export function printStageWise(
+  activeFile: BomFile,
+  result: CalculationResult,
+  companyName: string
+): void {
+  const stagePages = STAGE_NAMES.flatMap((stage) => {
+    const stageSummaries = activeFile.bom_summary.filter(
+      (summary) =>
+        summary.produced_item ===
+          result.summary.finished_good &&
+        bomHasStage(summary.bom_name, stage)
+    );
+
+    if (stageSummaries.length === 0) return [];
+
+    const stageSummary = stageSummaries[0];
+    const stageBomNames = new Set(
+      stageSummaries.map((summary) => summary.bom_name)
+    );
+    const stageMaterials = activeFile.consumption_details
+      .filter(
+        (row) =>
+          row.produced_item ===
+            result.summary.finished_good &&
+          stageBomNames.has(row.bom_name)
+      )
+      .map((row) => ({
+        item: row.consumption_item,
+        quantity:
+          row.quantity *
+          (result.summary.production_qty /
+            (stageSummary.quantity || 1)),
+        unit: row.unit,
+      }));
+
+    return [{
+      stage,
+      summary: stageSummary,
+      materials: stageMaterials,
+    }];
+  });
+
+  const win = window.open(
+    '',
+    '_blank',
+    'width=1280,height=800'
+  );
+
+  if (!win) return;
+
+  if (stagePages.length === 0) {
+    win.document.write(`
+      <html><body style="font-family:Arial,sans-serif;padding:32px">
+        No matching stage BOMs found for this produced item.
+      </body></html>`);
+    win.document.close();
+    return;
+  }
+
+  const pages = stagePages
+    .map((page, index) =>
+      renderJobCardPage(
+        companyName,
+        page.stage,
+        page.summary.bom_name,
+        result.summary.finished_good,
+        result.summary.item_code || '',
+        result.summary.production_qty,
+        page.summary.quantity,
+        page.summary.unit,
+        page.materials,
+        index === stagePages.length - 1
+      )
+    )
+    .join('');
+
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Stage Wise Job Cards</title>
+        <style>
+          * { box-sizing: border-box; }
+          @page { size: landscape; margin: 10mm; }
+          body {
+            margin: 0;
+            color: #111;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+          }
+          .job-card { min-height: 180mm; }
+          .job-title {
+            background: #193754;
+            color: #fff;
+            font-size: 19px;
+            font-weight: 700;
+            text-align: center;
+            padding: 4px 8px;
+            margin-bottom: 8px;
+          }
+          .job-title span { padding: 0 8px; }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+          }
+          td, th { border: 1px solid #222; }
+          .details { font-size: 11px; }
+          .details td { height: 18px; padding: 1px 3px; vertical-align: top; }
+          .label { width: 12%; }
+          .details .label { background: #f1f1f1; }
+          .details .label-col { width: 12%; }
+          .details .value-col { width: 68%; }
+          .details .side-label-col { width: 12%; }
+          .details .side-value-col { width: 8%; }
+          .manual-label, .manual-value { color: #111; }
+          .materials, .production { margin-top: 12px; }
+          caption {
+            border: 1px solid #222;
+            border-bottom: 0;
+            background: #dbe8ed;
+            color: #244c54;
+            font-weight: 700;
+            text-align: left;
+            padding: 2px 4px;
+          }
+          th {
+            background: #193754;
+            color: #fff;
+            font-weight: 700;
+            padding: 2px 3px;
+            text-align: center;
+          }
+          .materials th:nth-child(1) { width: 80%; text-align: left; }
+          .materials th:nth-child(2) { width: 12%; text-align: right; }
+          .materials th:nth-child(3) { width: 8%; text-align: left; }
+          .materials td { height: 26px; padding: 3px; }
+          .materials td.qty { text-align: right; }
+          .empty { text-align: center; color: #666; }
+          .production { font-size: 10px; }
+          .production th { white-space: nowrap; }
+          .production td { height: 20px; padding: 2px; text-align: center; }
+          .production .entry-row td { height: 76px; background: #eef6ff; }
+          .production .total-row td { background: #dbe8ed; font-weight: 700; }
+          .production .total-row td:first-child { text-align: left; }
+          .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin: 28px 3px 0;
+            font-size: 11px;
+          }
+          .signatures b {
+            display: inline-block;
+            width: 120px;
+            border-bottom: 1px solid #222;
+            height: 12px;
+            vertical-align: bottom;
+          }
+          @media print {
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>${pages}
+        <script>
+          window.onload = function () { window.print(); };
+        </script>
+      </body>
+    </html>`);
   win.document.close();
 }

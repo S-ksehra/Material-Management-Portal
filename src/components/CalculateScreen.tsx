@@ -33,6 +33,7 @@ import {
   exportToExcel,
   exportToPdf,
   printResult,
+  printStageWise,
 } from '@/lib/exporters';
 
 import { ExplosionTree } from './ExplosionTree';
@@ -348,6 +349,17 @@ export function CalculateScreen({
       if (!result) return;
 
       printResult(result);
+    };
+
+  const handleStageWisePrint =
+    () => {
+      if (!result) return;
+
+      printStageWise(
+        activeFile,
+        result,
+        companyName
+      );
     };
 
   // ---------- Filters ----------
@@ -1014,6 +1026,18 @@ export function CalculateScreen({
                   size={14}
                 />
                 Print
+              </button>
+
+              <button
+                onClick={
+                  handleStageWisePrint
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-xs font-medium transition"
+              >
+                <Printer
+                  size={14}
+                />
+                Print Stage wise
               </button>
 
             </div>
