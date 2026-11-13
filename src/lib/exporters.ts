@@ -1183,6 +1183,11 @@ function renderJobCardPage(
           <tr class="entry-row">
             <td></td><td></td><td></td><td></td><td></td>
             <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
           </tr>
           <tr class="total-row">
             <td colspan="2">TOTAL / STATUS</td>
