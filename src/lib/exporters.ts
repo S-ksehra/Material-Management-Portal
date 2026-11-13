@@ -1185,8 +1185,6 @@ function renderJobCardPage(
             <td></td><td></td><td></td><td></td><td></td>
             
           </tr>
-          <tr class="entry-row">
-            </tr>
           <tr class="total-row">
             <td colspan="2">TOTAL / STATUS</td>
             <td></td><td></td><td></td><td></td>
