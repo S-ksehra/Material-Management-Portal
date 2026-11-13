@@ -1182,7 +1182,16 @@ function renderJobCardPage(
         <tbody>
           <tr class="entry-row">
             <td></td><td></td><td></td><td></td><td></td>
-            <br><br><br><br>
+            <td></td><td></td><td></td><td></td><td></td>
+            
+          </tr>
+          <tr class="entry-row">
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td>
+            
+          </tr>
+          <tr class="entry-row">
+            <td></td><td></td><td></td><td></td><td></td>
             <td></td><td></td><td></td><td></td><td></td>
             
           </tr>
