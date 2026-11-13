@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { LayoutDashboard, Calculator, ScrollText, Boxes, Settings, X, LogOut, User as UserIcon } from 'lucide-react';
+import { LayoutDashboard, Calculator, ScrollText, Boxes, Settings, X, LogOut, User as UserIcon, Menu } from 'lucide-react';
 import type { BomFile, AuditEntry, ItemMasterEntry } from '@/types';
 import { getActiveFile, getAllFiles, getAuditLog, insertBomFile, deactivateActiveFile, deleteActiveFile, getNextVersion, logAudit, getItemMaster, replaceItemMaster } from '@/lib/dataAccess';
 import { parseBomExcel, validateBom, parseItemMasterExcel } from '@/lib/bomEngine';
@@ -26,6 +26,7 @@ export default function App() {
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; msg: string } | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [showChangePw, setShowChangePw] = useState(false);
@@ -180,9 +181,9 @@ export default function App() {
   ];
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[var(--color-primary-light)]">
+    <div className="h-[100dvh] flex overflow-hidden bg-[var(--color-primary-light)]">
       {/* Sidebar */}
-      <aside className="w-60 h-screen bg-white border-r border-[var(--color-border-base)] flex flex-col shrink-0 hidden md:flex">
+      <aside className="w-60 h-full bg-white border-r border-[var(--color-border-base)] flex-col shrink-0 hidden md:flex">
         <div className="px-5 py-4 border-b border-[var(--color-border-base)]">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
@@ -238,28 +239,24 @@ export default function App() {
       {/* Main */}
       <div className="flex-1 min-h-0 flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden bg-white border-b border-[var(--color-border-base)] px-4 py-3 flex items-center justify-between">
+        <div className="md:hidden bg-white border-b border-[var(--color-border-base)] px-3 py-2.5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open menu"
+              className="w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-[var(--color-text-primary)] hover:bg-[var(--color-primary-light)] transition"
+            >
+              <Menu size={20} />
+            </button>
             <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
               <Boxes size={18} className="text-white" />
             </div>
             <span className="font-bold text-[var(--color-primary)] text-sm">Material Requirement</span>
           </div>
-          <div className="flex items-center gap-2">
-            <select value={view} onChange={(e) => setView(e.target.value as View)} className="text-sm border border-[var(--color-border-base)] rounded-md px-2 py-1">
-              <option value="dashboard">Dashboard</option>
-              <option value="calculate" disabled={!activeFile}>Calculate BOM</option>
-              <option value="audit">Audit Log</option>
-              <option value="settings">Settings</option>
-            </select>
-            <button onClick={handleLogout} className="text-[var(--color-text-secondary)] hover:text-[var(--color-error)]">
-              <LogOut size={18} />
-            </button>
-          </div>
         </div>
 
         {/* Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 md:p-6">
           {view === 'dashboard' && (
             <Dashboard
               activeFile={activeFile}
@@ -327,6 +324,78 @@ export default function App() {
           {view === 'settings' && <SettingsScreen />}
         </main>
       </div>
+
+      {/* Mobile nav drawer */}
+      {mobileNavOpen && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 h-full w-64 max-w-[85%] bg-white shadow-xl flex flex-col animate-mobileSlideIn">
+            <div className="px-5 py-4 border-b border-[var(--color-border-base)] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+                  <Boxes size={20} className="text-white" />
+                </div>
+                <div>
+                  <h1 className="text-sm font-bold text-[var(--color-primary)] leading-tight">Material Requirement</h1>
+                  <p className="text-xs text-[var(--color-text-secondary)]">Job Card Manage</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close menu"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-light)] transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const active = view === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    disabled={item.disabled}
+                    onClick={() => {
+                      setView(item.id);
+                      setMobileNavOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                      active
+                        ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                        : item.disabled
+                          ? 'text-[var(--color-text-secondary)] opacity-50 cursor-not-allowed'
+                          : 'text-[var(--color-text-primary)] hover:bg-[var(--color-primary-light)]'
+                    }`}
+                  >
+                    <item.icon size={18} />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="p-3 border-t border-[var(--color-border-base)]">
+              <div className="flex items-center gap-2 px-2 py-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center shrink-0">
+                  <UserIcon size={16} className="text-[var(--color-primary)]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-[var(--color-text-primary)] truncate">{user.username}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] truncate">{user.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--color-text-secondary)] hover:bg-red-50 hover:text-[var(--color-error)] transition"
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
 
       {/* History drawer */}
       <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} files={allFiles} />
