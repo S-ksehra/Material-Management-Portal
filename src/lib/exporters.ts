@@ -1021,7 +1021,7 @@ function bomHasStage(
   stage: string
 ): boolean {
   return bomName
-    .split('|')
+    .split(/[|\-]/)
     .some(
       (part) =>
         part.trim().toLowerCase() ===
@@ -1030,7 +1030,7 @@ function bomHasStage(
 }
 
 function getCustomerName(bomName: string): string {
-  return bomName.split('|')[0]?.trim() || '';
+  return bomName.split(/[|\-]/)[0]?.trim() || '';
 }
 
 function getCutSpec(producedItem: string): string {
@@ -1207,7 +1207,12 @@ export function printStageWise(
 ): void {
   type StagePage = {
     stage: string;
-    summary: BomFile['bom_summary'][number];
+    producedItem: string;
+    itemCode: string;
+    orderQty: number;
+    standardQty: number;
+    unit: string;
+    bomName: string;
     materials: Array<{
       item: string;
       quantity: number;
@@ -1215,91 +1220,119 @@ export function printStageWise(
     }>;
   };
 
-  const stagePages: StagePage[] = [];
-  const usedBomNames = new Set<string>();
   const producedItem = result.summary.finished_good;
-  const matchingSummaries = activeFile.bom_summary.filter(
-    (summary) => summary.produced_item === producedItem
-  );
+  const rootScale = result.summary.scaling_factor;
 
-  const materialsFor = (
-    summaries: BomFile['bom_summary']
-  ): StagePage['materials'] => {
-    const bomNames = new Set(
-      summaries.map((summary) => summary.bom_name)
-    );
-    const summary = summaries[0];
-    const scale =
-      result.summary.production_qty /
-      (summary?.quantity || 1);
-
-    return activeFile.consumption_details
-      .filter(
-        (row) =>
-          row.produced_item === producedItem &&
-          bomNames.has(row.bom_name)
-      )
-      .map((row) => ({
-        item: row.consumption_item,
-        quantity: row.quantity * scale,
-        unit: row.unit,
-      }));
-  };
-
-  for (const stage of STAGE_NAMES) {
-    const stageSummaries = matchingSummaries.filter(
-      (summary) => bomHasStage(summary.bom_name, stage)
-    );
-
-    if (stageSummaries.length === 0) continue;
-
-    stageSummaries.forEach((summary) => {
-      usedBomNames.add(summary.bom_name);
-    });
-
-    stagePages.push({
-      stage,
-      summary: stageSummaries[0],
-      materials: materialsFor(stageSummaries),
-    });
-  }
-
-  const unmatchedSummaries = matchingSummaries.filter(
-    (summary) =>
-      !usedBomNames.has(summary.bom_name) &&
-      !STAGE_NAMES.some((stage) =>
-        bomHasStage(summary.bom_name, stage)
-      )
-  );
-  const uniqueUnmatched = new Map<string, BomFile['bom_summary'][number]>();
-
-  unmatchedSummaries.forEach((summary) => {
-    if (!uniqueUnmatched.has(summary.bom_name)) {
-      uniqueUnmatched.set(summary.bom_name, summary);
+  // Index BOM summary by produced_item for quick lookup
+  const summaryByItem = new Map<string, BomFile['bom_summary'][number]>();
+  activeFile.bom_summary.forEach((s) => {
+    if (!summaryByItem.has(s.produced_item)) {
+      summaryByItem.set(s.produced_item, s);
     }
   });
 
-  uniqueUnmatched.forEach((summary) => {
-    stagePages.push({
-      stage:
-        summary.bom_name.split('|')[1]?.trim() ||
-        'UNMATCHED STAGE',
-      summary,
-      materials: materialsFor([summary]),
-    });
+  // Index consumption by produced_item
+  const consumptionByProduced = new Map<string, BomFile['consumption_details'][number][]>();
+  activeFile.consumption_details.forEach((c) => {
+    if (!consumptionByProduced.has(c.produced_item)) {
+      consumptionByProduced.set(c.produced_item, []);
+    }
+    consumptionByProduced.get(c.produced_item)!.push(c);
   });
 
-  if (stagePages.length === 0 && matchingSummaries.length > 0) {
-    const fallbackSummary = matchingSummaries[0];
+  // Traverse the calculation result tree to find all items in production chain
+  // in order (deepest first, i.e. raw material stages first, finished good last)
+  const orderedItems: string[] = [];
+  const visited = new Set<string>();
 
-    stagePages.push({
-      stage:
-        fallbackSummary.bom_name.split('|')[1]?.trim() ||
-        'UNMATCHED STAGE',
-      summary: fallbackSummary,
-      materials: materialsFor([fallbackSummary]),
+  function traverseTree(node: TreeNode) {
+    // Push children first (deeper stages come first)
+    node.children.forEach((child) => {
+      if (!visited.has(child.item)) {
+        visited.add(child.item);
+        traverseTree(child);
+      }
+    });
+    // Then push this item
+    if (!visited.has(node.item)) {
+      visited.add(node.item);
+    }
+    if (!orderedItems.includes(node.item)) {
+      orderedItems.push(node.item);
+    }
+  }
+
+  // We want production order: raw materials/early stages first, finished good last
+  // traverseTree pushes children before parent, so we get that order
+  traverseTree(result.tree);
+
+  // Build a page for each item in the production chain
+  const allPages: StagePage[] = [];
+
+  for (const item of orderedItems) {
+    const summary = summaryByItem.get(item);
+    const cons = consumptionByProduced.get(item);
+
+    // Skip items that have no BOM summary and no consumption (pure raw materials with no sub-assembly)
+    if (!summary && (!cons || cons.length === 0)) continue;
+
+    const bomName = summary?.bom_name || '';
+    const standardQty = summary?.quantity || 1;
+    const unit = summary?.unit || '';
+    const reqRow = result.requirements.find((r) => r.item === item);
+    const itemCode = reqRow?.item_code || '';
+    const orderQty = reqRow?.required_qty || result.summary.production_qty;
+
+    // Determine stage name from BOM name
+    const stageName = bomName.split(/[|\-]/)[1]?.trim() || item;
+
+    const materials: StagePage['materials'] = cons
+      ? cons.map((row) => ({
+          item: row.consumption_item,
+          quantity: row.quantity * (orderQty / standardQty || rootScale),
+          unit: row.unit,
+        }))
+      : [];
+
+    allPages.push({
+      stage: stageName,
+      producedItem: item,
+      itemCode,
+      orderQty,
+      standardQty,
+      unit,
+      bomName,
+      materials,
     });
   }
+
+  // Try to match known stage names; put matched first (in STAGE_NAMES order), unmatched at end
+  const matchedPages: StagePage[] = [];
+  const unmatchedPages: StagePage[] = [];
+
+  for (const page of allPages) {
+    const matchedStage = STAGE_NAMES.find((stage) =>
+      bomHasStage(page.bomName, stage)
+    );
+    if (matchedStage) {
+      matchedPages.push({ ...page, stage: matchedStage });
+    } else {
+      unmatchedPages.push(page);
+    }
+  }
+
+  // Sort matched pages by STAGE_NAMES order
+  matchedPages.sort((a, b) => {
+    const aIdx = STAGE_NAMES.indexOf(
+      STAGE_NAMES.find((s) => bomHasStage(a.bomName, s))!
+    );
+    const bIdx = STAGE_NAMES.indexOf(
+      STAGE_NAMES.find((s) => bomHasStage(b.bomName, s))!
+    );
+    return aIdx - bIdx;
+  });
+
+  const stagePages = [...matchedPages, ...unmatchedPages];
 
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -1325,17 +1358,17 @@ export function printStageWise(
       { align: 'center' }
     );
 
-    const customer = getCustomerName(page.summary.bom_name);
-    const cutSpec = getCutSpec(producedItem);
+    const customer = getCustomerName(page.bomName);
+    const cutSpec = getCutSpec(page.producedItem);
     const details = [
       ['Customer', customer, 'Job Card No.', ''],
       ['FG Product', producedItem, 'Job Card Date', ''],
       ['FG Code', result.summary.item_code || '', 'Production Order', ''],
       ['FG Order Qty', printNumber(result.summary.production_qty), 'Production Date', ''],
-      ['Output Product', producedItem, 'Machine', ''],
-      ['Output UOM', page.summary.unit, 'Supervisor', ''],
-      ['Target Output', printNumber(result.summary.production_qty), '', ''],
-      ['BOM / Reference', page.summary.bom_name, '', ''],
+      ['Output Product', page.producedItem, 'Machine', ''],
+      ['Output UOM', page.unit, 'Supervisor', ''],
+      ['Target Output', printNumber(page.orderQty), '', ''],
+      ['BOM / Reference', page.bomName, '', ''],
       ['Cut / spec', cutSpec, '', ''],
     ];
 
