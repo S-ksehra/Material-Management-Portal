@@ -1529,7 +1529,7 @@ export function printStageWise(
       },
       didParseCell: (data) => {
         if (data.section === 'body' && data.row.index === 0) {
-          data.cell.styles.minCellHeight = 25;
+          data.cell.styles.minCellHeight = 48;
           data.cell.styles.fillColor = [238, 246, 255];
         }
         if (data.section === 'body' && data.row.index === 1) {
