@@ -1723,7 +1723,7 @@ function StagePreviewCard({
   return (
     <div className="border border-[var(--color-border-base)] rounded-lg overflow-hidden">
       <div className="bg-[#193754] px-3 py-1.5">
-        <p className="text-white font-semibold text-xs">
+        <p className="font-semibold text-xs">
           {companyName || 'SAKSHI LAMINATES'} | {page.stage} JOB CARD
         </p>
       </div>
