@@ -34,7 +34,10 @@ import {
   exportToPdf,
   printResult,
   printStageWise,
+  buildStagePages,
 } from '@/lib/exporters';
+
+import type { StagePageData } from '@/lib/exporters';
 
 import { ExplosionTree } from './ExplosionTree';
 import { TypeBadge } from './TypeBadge';
@@ -351,16 +354,36 @@ export function CalculateScreen({
       printResult(result);
     };
 
-  const handleStageWisePrint =
-    () => {
-      if (!result) return;
+  // ---------- Stage-wise PDF + Stage Viewer ----------
 
-      printStageWise(
-        activeFile,
-        result,
-        companyName
-      );
-    };
+  const stagePages = useMemo(
+    () => (result ? buildStagePages(activeFile, result) : []),
+    [result, activeFile]
+  );
+
+  const [stageViewerOpen, setStageViewerOpen] = useState(false);
+
+  const [selectedStages, setSelectedStages] = useState<string[]>([]);
+
+  const toggleStage = (stage: string): void => {
+    setSelectedStages((prev) =>
+      prev.includes(stage)
+        ? prev.filter((s) => s !== stage)
+        : [...prev, stage]
+    );
+  };
+
+  const handleStageWisePrint = () => {
+    if (!result) return;
+
+    printStageWise(activeFile, result, companyName);
+  };
+
+  const handleSelectedStagePrint = () => {
+    if (!result || selectedStages.length === 0) return;
+
+    printStageWise(activeFile, result, companyName, selectedStages);
+  };
 
   // ---------- Filters ----------
 
@@ -1040,6 +1063,18 @@ export function CalculateScreen({
                 Print Stage wise
               </button>
 
+              <button
+                onClick={() =>
+                  setStageViewerOpen(true)
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-xs font-medium transition"
+              >
+                <Filter
+                  size={14}
+                />
+                Stage Filter
+              </button>
+
             </div>
 
             {/* ---------- Production Summary ---------- */}
@@ -1564,6 +1599,170 @@ export function CalculateScreen({
           </div>
         )}
 
+      {/* ---------- Stage Filter & Viewer Modal ---------- */}
+
+      {stageViewerOpen && result && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-auto"
+          onClick={() => setStageViewerOpen(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-[var(--color-primary)] px-4 py-2.5 rounded-t-xl flex items-center justify-between">
+              <h2 className="text-white font-semibold text-sm flex items-center gap-1.5">
+                <Filter size={16} />
+                Stage Filter — view &amp; print selected stages
+              </h2>
+              <button
+                onClick={() => setStageViewerOpen(false)}
+                className="text-white/80 hover:text-white text-lg leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Stage checkboxes */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-[var(--color-text-primary)]">
+                    Select stages ({selectedStages.length} of {stagePages.length} selected)
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedStages(stagePages.map((p) => p.stage))}
+                      className="text-xs px-2 py-1 rounded border border-[var(--color-border-base)] hover:bg-[var(--color-primary-light)] transition"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      onClick={() => setSelectedStages([])}
+                      className="text-xs px-2 py-1 rounded border border-[var(--color-border-base)] hover:bg-[var(--color-primary-light)] transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-1.5">
+                  {stagePages.map((page) => (
+                    <label
+                      key={page.producedItem}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[var(--color-border-base)] hover:bg-[var(--color-primary-light)] transition cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedStages.includes(page.stage)}
+                        onChange={() => toggleStage(page.stage)}
+                        className="accent-[var(--color-primary)]"
+                      />
+                      <span className="text-xs font-medium text-[var(--color-text-primary)] truncate">
+                        {page.stage}
+                      </span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] truncate ml-auto">
+                        {page.producedItem}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* On-screen preview of selected stages */}
+              <div className="space-y-3 max-h-[45vh] overflow-auto">
+                {stagePages
+                  .filter(
+                    (page) =>
+                      selectedStages.length === 0 ||
+                      selectedStages.includes(page.stage)
+                  )
+                  .map((page) => (
+                    <StagePreviewCard
+                      key={page.producedItem}
+                      page={page}
+                      companyName={companyName}
+                    />
+                  ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 justify-end border-t border-[var(--color-border-base)] pt-3">
+                <button
+                  onClick={handleSelectedStagePrint}
+                  disabled={selectedStages.length === 0}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-lg text-xs font-medium transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Printer size={14} />
+                  Print Selected ({selectedStages.length})
+                </button>
+                <button
+                  onClick={() => setStageViewerOpen(false)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--color-border-base)] hover:bg-[var(--color-primary-light)] transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
+}
+
+function StagePreviewCard({
+  page,
+  companyName,
+}: {
+  page: StagePageData;
+  companyName: string;
+}) {
+  return (
+    <div className="border border-[var(--color-border-base)] rounded-lg overflow-hidden">
+      <div className="bg-[#193754] px-3 py-1.5">
+        <p className="text-white font-semibold text-xs">
+          {companyName || 'SAKSHI LAMINATES'} | {page.stage} JOB CARD
+        </p>
+      </div>
+      <div className="p-3 grid sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+        <p><span className="text-[var(--color-text-secondary)]">Customer:</span> {getCustomerNameFor(page.bomName)}</p>
+        <p><span className="text-[var(--color-text-secondary)]">BOM:</span> {page.bomName || '—'}</p>
+        <p><span className="text-[var(--color-text-secondary)]">Output Product:</span> {page.producedItem}</p>
+        <p><span className="text-[var(--color-text-secondary)]">Target Output:</span> {page.orderQty} {page.unit}</p>
+      </div>
+      <table className="w-full text-xs border-t border-[var(--color-border-base)]">
+        <thead>
+          <tr className="bg-[#DBE8ED] text-[#244C54]">
+            <th className="text-left px-3 py-1 font-medium">Material</th>
+            <th className="text-right px-3 py-1 font-medium">Quantity</th>
+            <th className="text-left px-3 py-1 font-medium">Unit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {page.materials.length === 0 ? (
+            <tr>
+              <td colSpan={3} className="text-center py-3 text-[var(--color-text-secondary)]">
+                No planned materials.
+              </td>
+            </tr>
+          ) : (
+            page.materials.map((m, i) => (
+              <tr key={i} className="border-t border-[var(--color-border-base)]">
+                <td className="px-3 py-1 text-[var(--color-text-primary)]">{m.item}</td>
+                <td className="px-3 py-1 text-right tabular-nums">{m.quantity}</td>
+                <td className="px-3 py-1 text-[var(--color-text-secondary)]">{m.unit}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function getCustomerNameFor(bomName: string): string {
+  return bomName.split(/[|\-]/)[0]?.trim() || '';
 }

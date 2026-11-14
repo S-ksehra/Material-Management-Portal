@@ -1201,27 +1201,29 @@ function renderJobCardPage(
     </section>`;
 }
 
-export function printStageWise(
-  activeFile: BomFile,
-  result: CalculationResult,
-  companyName: string
-): void {
-  type StagePage = {
-    stage: string;
-    producedItem: string;
-    itemCode: string;
-    orderQty: number;
-    standardQty: number;
+export interface StagePageData {
+  stage: string;
+  producedItem: string;
+  itemCode: string;
+  orderQty: number;
+  standardQty: number;
+  unit: string;
+  bomName: string;
+  materials: Array<{
+    item: string;
+    quantity: number;
     unit: string;
-    bomName: string;
-    materials: Array<{
-      item: string;
-      quantity: number;
-      unit: string;
-    }>;
-  };
+  }>;
+}
 
-  const producedItem = result.summary.finished_good;
+// Builds ordered stage pages for the whole production chain:
+// matched known stages first (STAGE_NAMES order), unmatched stages last.
+export function buildStagePages(
+  activeFile: BomFile,
+  result: CalculationResult
+): StagePageData[] {
+  type StagePage = StagePageData;
+
   const rootScale = result.summary.scaling_factor;
 
   // Index BOM summary by produced_item for quick lookup
@@ -1247,24 +1249,17 @@ export function printStageWise(
   const visited = new Set<string>();
 
   function traverseTree(node: TreeNode) {
-    // Push children first (deeper stages come first)
     node.children.forEach((child) => {
       if (!visited.has(child.item)) {
         visited.add(child.item);
         traverseTree(child);
       }
     });
-    // Then push this item
-    if (!visited.has(node.item)) {
-      visited.add(node.item);
-    }
     if (!orderedItems.includes(node.item)) {
       orderedItems.push(node.item);
     }
   }
 
-  // We want production order: raw materials/early stages first, finished good last
-  // traverseTree pushes children before parent, so we get that order
   traverseTree(result.tree);
 
   // Build a page for each item in the production chain
@@ -1333,7 +1328,25 @@ export function printStageWise(
     return aIdx - bIdx;
   });
 
-  const stagePages = [...matchedPages, ...unmatchedPages];
+  return [...matchedPages, ...unmatchedPages];
+}
+
+export function printStageWise(
+  activeFile: BomFile,
+  result: CalculationResult,
+  companyName: string,
+  selectedStages?: string[]
+): void {
+  const producedItem = result.summary.finished_good;
+
+  const allPages = buildStagePages(activeFile, result);
+
+  const stagePages =
+    selectedStages && selectedStages.length > 0
+      ? allPages.filter((page) => selectedStages.includes(page.stage))
+      : allPages;
+
+  if (stagePages.length === 0) return;
 
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -1547,9 +1560,7 @@ export function printStageWise(
     doc.line(pageW - 35, y + 0.5, pageW - margin, y + 0.5);
   });
 
-  if (stagePages.length > 0) {
-    doc.save(
-      `Stage_Wise_Job_Cards_${result.summary.finished_good}_${Date.now()}.pdf`
-    );
-  }
+  doc.save(
+    `Stage_Wise_Job_Cards_${result.summary.finished_good}_${Date.now()}.pdf`
+  );
 }
