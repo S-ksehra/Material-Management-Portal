@@ -1461,6 +1461,8 @@ export function CalculateScreen({
                 </select>
 
               </div>
+
+            
   {/* ---------- Material Requirement Table ---------- */}
 
             <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
@@ -1517,7 +1519,7 @@ export function CalculateScreen({
                           Item
                         </th>
 
-                        <th className="text-right px-3 py-1.5 font-semibold">
+                        <th className="text-right px-3 py-1.5 font-semibold w-20">
                           Req Qty
                         </th>
 
