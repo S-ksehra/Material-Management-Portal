@@ -156,12 +156,18 @@ export function CalculateScreen({ activeFile, companyName, itemMaster, onCalcula
     });
   }, [result, filterType, filterLevel, filterUnit, reqSearch]);
 
-  const typeCounts = useMemo(() => {
-    if (!result) return null;
-    const c: Record<MaterialType, number> = { 'Finished Good': 0, 'Semi Finished': 0, 'Raw Material': 0 };
-    result.requirements.forEach(r => c[r.type]++);
-    return c;
-  }, [result]);
+  // Group requirements by parent_bom (stage), ordered by level
+  const groupedReqs = useMemo(() => {
+    if (!filteredReqs.length) return [];
+    const groups = new Map<string, { level: number; rows: typeof filteredReqs }>();
+    filteredReqs.forEach(r => {
+      const key = r.parent_bom || '—';
+      if (!groups.has(key)) groups.set(key, { level: r.level, rows: [] });
+      groups.get(key)!.rows.push(r);
+    });
+    return [...groups.entries()].map(([bom, g]) => ({ bom, level: g.level, rows: g.rows }))
+      .sort((a, b) => a.level - b.level);
+  }, [filteredReqs]);
 
   /* ─────────────────────────────────────────────────── */
   return (
@@ -201,49 +207,53 @@ export function CalculateScreen({ activeFile, companyName, itemMaster, onCalcula
             <div>
               <label className="block text-[11px] font-semibold text-[var(--color-text-secondary)] mb-1 uppercase tracking-wide">Produced Item</label>
               <div className="relative">
-                <button
-                  onClick={() => { setDropdownOpen(!dropdownOpen); setSearch(''); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg text-sm transition text-left ${dropdownOpen ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15' : 'border-[var(--color-border-base)] hover:border-[var(--color-primary)]'}`}
-                >
-                  <span className={`truncate ${selectedItem ? 'text-[var(--color-text-primary)] font-medium' : 'text-[var(--color-text-secondary)]'}`}>
-                    {selectedItem ? (selectedItemCode ? `${selectedItemCode} | ${selectedItem}` : selectedItem) : 'Search and select item…'}
-                  </span>
-                  {selectedItem
-                    ? <X size={13} className="shrink-0 text-[var(--color-text-secondary)] hover:text-red-500" onClick={e => { e.stopPropagation(); setSelectedItem(''); setResult(null); }} />
-                    : <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-secondary)] transition ${dropdownOpen ? 'rotate-180' : ''}`} />}
-                </button>
+                {/* Search-first: input always visible, results only after typing */}
+                <div className="relative">
+                  <div className={`flex items-center gap-2 px-3 py-2 bg-white border rounded-lg transition ${dropdownOpen ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15' : 'border-[var(--color-border-base)] hover:border-[var(--color-primary)]'}`}>
+                    <Search size={14} className="text-[var(--color-text-secondary)] shrink-0" />
+                    <input
+                      value={selectedItem && !dropdownOpen ? (selectedItemCode ? `${selectedItemCode} | ${selectedItem}` : selectedItem) : search}
+                      onFocus={() => { setDropdownOpen(true); if (selectedItem) { setSelectedItem(''); setResult(null); } }}
+                      onChange={e => { setDropdownOpen(true); setSearch(e.target.value); }}
+                      onKeyDown={e => { if (e.key === 'Escape') { setDropdownOpen(false); setSearch(''); } if (e.key === 'Enter' && filteredItems.length === 1) { setSelectedItem(filteredItems[0]); setSelectedBom(''); setDropdownOpen(false); setResult(null); } }}
+                      placeholder={selectedItem && !dropdownOpen ? (selectedItemCode ? `${selectedItemCode} | ${selectedItem}` : selectedItem) : 'Type to search item…'}
+                      className="flex-1 min-w-0 text-sm outline-none bg-transparent text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]"
+                    />
+                    {selectedItem && !dropdownOpen
+                      ? <X size={13} className="shrink-0 text-[var(--color-text-secondary)] hover:text-red-500" onClick={() => { setSelectedItem(''); setResult(null); }} />
+                      : <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-secondary)] transition ${dropdownOpen ? 'rotate-180' : ''}`} onClick={() => setDropdownOpen(!dropdownOpen)} />}
+                  </div>
 
-                {dropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-                    <div className="absolute z-20 mt-1 w-full min-w-[300px] bg-white border border-[var(--color-border-base)] rounded-xl shadow-2xl overflow-hidden flex flex-col">
-                      <div className="px-2.5 py-2 border-b border-[var(--color-border-base)] flex items-center gap-2 bg-[var(--color-primary-light)]">
-                        <Search size={13} className="text-[var(--color-primary)] shrink-0" />
-                        <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search item or code…"
-                          className="flex-1 text-xs outline-none bg-transparent text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]" />
-                        {search && <button onClick={() => setSearch('')}><X size={12} className="text-[var(--color-text-secondary)]" /></button>}
+                  {dropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => { setDropdownOpen(false); setSearch(''); }} />
+                      <div className="absolute z-20 mt-1 w-full min-w-[300px] bg-white border border-[var(--color-border-base)] rounded-xl shadow-2xl overflow-hidden flex flex-col">
+                        <div className="overflow-auto max-h-52">
+                          {search.trim() === ''
+                            ? <p className="px-3 py-6 text-xs text-center text-[var(--color-text-secondary)]">Start typing to search items…</p>
+                            : filteredItems.length === 0
+                              ? <p className="px-3 py-4 text-xs text-center text-[var(--color-text-secondary)]">No items found for "{search}"</p>
+                              : <>
+                                  {filteredItems.slice(0, 200).map(item => {
+                                    const code = resolveItemCode(item);
+                                    return (
+                                      <button key={item} onClick={() => { setSelectedItem(item); setSelectedBom(''); setDropdownOpen(false); setSearch(''); setResult(null); }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/40 last:border-0 ${selectedItem === item ? 'bg-[var(--color-primary-light)]' : ''}`}>
+                                        {code && <span className="font-mono text-[var(--color-text-secondary)] shrink-0 text-[11px]">{code}</span>}
+                                        <span className="text-[var(--color-text-primary)] truncate">{item}</span>
+                                        {selectedItem === item && <Check size={11} className="ml-auto shrink-0 text-[var(--color-primary)]" />}
+                                      </button>
+                                    );
+                                  })}
+                                  <div className="px-3 py-1 bg-slate-50 border-t border-[var(--color-border-base)]">
+                                    <span className="text-[10px] text-[var(--color-text-secondary)]">{filteredItems.length} / {distinctItems.length} items</span>
+                                  </div>
+                                </>}
+                        </div>
                       </div>
-                      <div className="overflow-auto max-h-52">
-                        {filteredItems.length === 0
-                          ? <p className="px-3 py-4 text-xs text-center text-[var(--color-text-secondary)]">No items found.</p>
-                          : filteredItems.slice(0, 200).map(item => {
-                              const code = resolveItemCode(item);
-                              return (
-                                <button key={item} onClick={() => { setSelectedItem(item); setSelectedBom(''); setDropdownOpen(false); setResult(null); }}
-                                  className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/40 last:border-0 ${selectedItem === item ? 'bg-[var(--color-primary-light)]' : ''}`}>
-                                  {code && <span className="font-mono text-[var(--color-text-secondary)] shrink-0 text-[11px]">{code}</span>}
-                                  <span className="text-[var(--color-text-primary)] truncate">{item}</span>
-                                  {selectedItem === item && <Check size={11} className="ml-auto shrink-0 text-[var(--color-primary)]" />}
-                                </button>
-                              );
-                            })}
-                      </div>
-                      <div className="px-3 py-1 bg-slate-50 border-t border-[var(--color-border-base)]">
-                        <span className="text-[10px] text-[var(--color-text-secondary)]">{filteredItems.length} / {distinctItems.length} items</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
               {autoFetch && (
                 <div className="flex flex-wrap gap-1 mt-1">
@@ -351,7 +361,7 @@ export function CalculateScreen({ activeFile, companyName, itemMaster, onCalcula
           {/* ② PRODUCTION SUMMARY */}
           <div className="bg-white rounded-xl border border-[var(--color-border-base)] shadow-[var(--shadow-card)] overflow-hidden">
             <SectionHeader color="var(--color-primary)" icon={Package} title="Production Summary" />
-            <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="p-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
               {([
                 { label: 'BOM Name',       value: result.summary.bom_name,                                        icon: FileText,  span: 2 },
                 { label: 'Standard Qty',   value: `${fmt(result.summary.standard_qty)} ${result.summary.unit}`,   icon: Layers,    span: 1 },
@@ -359,24 +369,15 @@ export function CalculateScreen({ activeFile, companyName, itemMaster, onCalcula
                 { label: 'Finished Good',  value: result.summary.finished_good,                                   icon: Package,   span: 2 },
                 { label: 'Production Qty', value: `${fmt(result.summary.production_qty)} ${result.summary.unit}`, icon: Boxes,     span: 1 },
               ] as const).map((f) => (
-                <div key={f.label} className={`flex flex-col gap-1 p-3 rounded-lg bg-[var(--color-primary-light)]/70 border border-[var(--color-primary-light)] ${f.span === 2 ? 'md:col-span-2' : ''}`}>
+                <div key={f.label} className={`flex flex-col gap-0.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-primary-light)]/60 border border-[var(--color-primary-light)] ${f.span === 2 ? 'md:col-span-2' : ''}`}>
                   <div className="flex items-center gap-1">
-                    <f.icon size={11} className="text-[var(--color-primary)] shrink-0" />
+                    <f.icon size={10} className="text-[var(--color-primary)] shrink-0" />
                     <span className="text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">{f.label}</span>
                   </div>
-                  <span className="text-sm font-bold text-[var(--color-text-primary)] break-words leading-snug">{f.value}</span>
+                  <span className="text-[13px] font-bold text-[var(--color-text-primary)] break-words leading-tight">{f.value}</span>
                 </div>
               ))}
             </div>
-            {typeCounts && (
-              <div className="px-4 pb-3 flex flex-wrap gap-2">
-                {(['Finished Good', 'Semi Finished', 'Raw Material'] as MaterialType[]).map(t => (
-                  <span key={t} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-white" style={{ background: TYPE_COLOR[t] }}>
-                    {typeCounts[t]} {t}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* ③ MATERIAL HIERARCHY */}
@@ -428,37 +429,41 @@ export function CalculateScreen({ activeFile, companyName, itemMaster, onCalcula
               <span className="ml-auto text-[10px] text-[var(--color-text-secondary)]">{filteredReqs.length} / {result.requirements.length}</span>
             </div>
 
+            {/* Stage-wise grouped list */}
             <div className="overflow-auto max-h-[480px]">
-              <table className="w-full text-xs border-collapse">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-[var(--color-primary)]">
-                    {['Lvl', 'Type', 'Parent BOM', 'Code', 'Item', 'Req Qty', 'Unit'].map((h, i) => (
-                      <th key={h} className={`px-3 py-2 font-semibold text-white whitespace-nowrap text-left ${i === 5 ? 'text-right' : ''}`}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredReqs.length === 0
-                    ? <tr><td colSpan={7} className="text-center py-10 text-[var(--color-text-secondary)]">No results match your filters.</td></tr>
-                    : filteredReqs.map((r, i) => (
-                        <tr key={i} className={`border-b border-[var(--color-border-base)] hover:bg-[var(--color-primary-light)]/40 transition ${i % 2 === 1 ? 'bg-slate-50/40' : ''}`}>
-                          <td className="px-3 py-2">
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">{r.level}</span>
-                          </td>
-                          <td className="px-3 py-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-white whitespace-nowrap" style={{ background: TYPE_COLOR[r.type] }}>
-                              {r.type}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2 text-[var(--color-text-secondary)] max-w-[160px] truncate" title={r.parent_bom}>{r.parent_bom || '—'}</td>
-                          <td className="px-3 py-2 font-mono text-[var(--color-text-secondary)] whitespace-nowrap">{r.item_code || '—'}</td>
-                          <td className="px-3 py-2 font-medium text-[var(--color-text-primary)] max-w-[200px] truncate" title={r.item}>{r.item}</td>
-                          <td className="px-3 py-2 text-right tabular-nums font-semibold text-[var(--color-text-primary)]">{fmt(r.required_qty)}</td>
-                          <td className="px-3 py-2 text-[var(--color-text-secondary)]">{r.unit}</td>
-                        </tr>
-                      ))}
-                </tbody>
-              </table>
+              {groupedReqs.length === 0
+                ? <p className="text-center py-10 text-[var(--color-text-secondary)] text-xs">No results match your filters.</p>
+                : groupedReqs.map((grp, gi) => (
+                    <div key={gi} className="border-b border-[var(--color-border-base)] last:border-0">
+                      {/* Stage header */}
+                      <div className="flex items-center gap-2 px-3 py-2 bg-slate-100/80 sticky top-0 z-[5]">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white bg-[var(--color-primary)]">{grp.level}</span>
+                        <span className="text-xs font-bold text-[var(--color-text-primary)] truncate flex-1 min-w-0">{grp.bom}</span>
+                        <span className="text-[10px] text-[var(--color-text-secondary)] shrink-0">{grp.rows.length} item{grp.rows.length > 1 ? 's' : ''}</span>
+                      </div>
+                      {/* Items under this stage */}
+                      <table className="w-full text-xs border-collapse">
+                        <tbody>
+                          {grp.rows.map((r, ri) => (
+                            <tr key={ri} className={`border-b border-[var(--color-border-base)]/50 hover:bg-[var(--color-primary-light)]/30 transition ${ri % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
+                              <td className="px-3 py-2 w-8">
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-600">{r.level}</span>
+                              </td>
+                              <td className="px-2 py-2">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-white whitespace-nowrap" style={{ background: TYPE_COLOR[r.type] }}>
+                                  {r.type === 'Finished Good' ? 'FG' : r.type === 'Semi Finished' ? 'SF' : 'RM'}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 font-mono text-[var(--color-text-secondary)] whitespace-nowrap text-[11px]">{r.item_code || '—'}</td>
+                              <td className="px-3 py-2 font-medium text-[var(--color-text-primary)] break-words">{r.item}</td>
+                              <td className="px-3 py-2 text-right tabular-nums font-semibold text-[var(--color-text-primary)] whitespace-nowrap">{fmt(r.required_qty)}</td>
+                              <td className="px-3 py-2 text-[var(--color-text-secondary)] whitespace-nowrap">{r.unit}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
             </div>
           </div>
 
