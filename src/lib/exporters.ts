@@ -353,7 +353,6 @@ export function exportToPdf(
       'Finished Good',
       'Production Qty',
       'Unit',
-      'Calculation Date',
     ]],
 
     body: [[
@@ -367,9 +366,6 @@ export function exportToPdf(
         result.summary.production_qty
       ),
       result.summary.unit,
-      new Date(
-        result.summary.calculation_date
-      ).toLocaleString(),
     ]],
 
     theme: 'grid',
