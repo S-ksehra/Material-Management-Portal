@@ -714,17 +714,23 @@ export function CalculateScreen({
                 <span
                   className={
                     selectedBom
-                      ? 'text-[var(--color-text-primary)]'
-                      : 'text-[var(--color-text-secondary)]'
+                      ? 'text-[var(--color-text-primary)] font-medium flex items-center gap-2 min-w-0'
+                      : 'text-[var(--color-text-secondary)] flex items-center gap-2 min-w-0'
                   }
                 >
-                  {selectedBom
-                    ? selectedBom
-                    : bomNamesForItem.length === 0
-                      ? '—'
-                      : bomNamesForItem.length === 1
-                        ? bomNamesForItem[0]
-                        : 'Select BOM...'}
+                  <Layers
+                    size={15}
+                    className="text-[var(--color-primary)] shrink-0"
+                  />
+                  <span className="truncate">
+                    {selectedBom
+                      ? selectedBom
+                      : bomNamesForItem.length === 0
+                        ? '—'
+                        : bomNamesForItem.length === 1
+                          ? bomNamesForItem[0]
+                          : 'Select BOM...'}
+                  </span>
                 </span>
 
                 <ChevronDown
@@ -1388,7 +1394,7 @@ export function CalculateScreen({
                     )
                   }
                   placeholder="Item..."
-                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md w-28 outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md w-32 outline-none focus:border-[var(--color-primary)]"
                 />
 
                 <select
@@ -1403,7 +1409,7 @@ export function CalculateScreen({
                         | 'all'
                     )
                   }
-                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)] w-36"
                 >
                   <option value="all">
                     All Types
@@ -1433,7 +1439,7 @@ export function CalculateScreen({
                       e.target.value
                     )
                   }
-                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)] w-28"
                 >
                   <option value="all">
                     All Units
@@ -1460,7 +1466,7 @@ export function CalculateScreen({
                       e.target.value
                     )
                   }
-                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)] w-44"
                 >
                   <option value="all">
                     All Stages
@@ -1482,7 +1488,7 @@ export function CalculateScreen({
 
               {/* Requirement Table — grouped by Parent BOM (stage-wise) */}
 
-              <div className="overflow-auto max-h-[480px]">
+              <div>
 
                 {filteredRequirements.length ===
                 0 ? (
@@ -1495,7 +1501,7 @@ export function CalculateScreen({
 
                   <table className="w-full text-xs">
 
-                    <thead className="sticky top-0 z-10 bg-[var(--color-primary)] text-white">
+                    <thead className="bg-[var(--color-primary)] text-white">
 
                       <tr>
 
@@ -1542,10 +1548,10 @@ export function CalculateScreen({
                           <Fragment key={gi}>
 
                             {/* Stage header row */}
-                            <tr className="bg-slate-100">
+                            <tr className="bg-[var(--color-primary-light)]">
                               <td
                                 colSpan={5}
-                                className="px-3 py-2 text-xs font-bold text-black uppercase tracking-wide"
+                                className="px-3 py-2 text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wide"
                               >
                                 {grp.bom}
                               </td>
@@ -1554,21 +1560,23 @@ export function CalculateScreen({
                             {grp.rows.map((r, ri) => (
                               <tr
                                 key={ri}
-                                className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/50"
+                                className={`hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/50 ${
+                                  ri % 2 === 1 ? 'bg-[var(--color-primary-light)]/60' : ''
+                                }`}
                               >
                                 <td className="px-3 py-1.5">
                                   <TypeBadge type={r.type} />
                                 </td>
-                                <td className="px-3 py-1.5 text-black font-semibold tabular-nums break-words whitespace-normal">
+                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-semibold tabular-nums break-words whitespace-normal">
                                   {r.item_code || '—'}
                                 </td>
-                                <td className="px-3 py-1.5 text-black font-semibold break-words whitespace-normal">
+                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-semibold break-words whitespace-normal">
                                   {r.item}
                                 </td>
-                                <td className="px-3 py-1.5 text-right text-black font-semibold tabular-nums">
+                                <td className="px-3 py-1.5 text-right text-[var(--color-text-primary)] font-semibold tabular-nums">
                                   {formatNum(r.required_qty)}
                                 </td>
-                                <td className="px-3 py-1.5 text-black font-semibold break-words whitespace-normal">
+                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-semibold break-words whitespace-normal">
                                   {r.unit}
                                 </td>
                               </tr>
