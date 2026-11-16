@@ -188,6 +188,37 @@ function hexToRgb(
   ];
 }
 
+function fmtQty(n: number): string {
+  return Number.isInteger(n)
+    ? String(n)
+    : n.toFixed(4).replace(/\.?0+$/, '');
+}
+
+function customerFromBom(bomName: string): string {
+  return bomName.split(/[|\-]/)[0]?.trim() || '';
+}
+
+interface ReqGroup {
+  bom: string;
+  rows: CalculationResult['requirements'];
+}
+
+function groupRequirements(
+  requirements: CalculationResult['requirements']
+): ReqGroup[] {
+  const groups: ReqGroup[] = [];
+  const seen = new Map<string, number>();
+  requirements.forEach((r) => {
+    const bom = r.parent_bom || '—';
+    if (!seen.has(bom)) {
+      seen.set(bom, groups.length);
+      groups.push({ bom, rows: [] });
+    }
+    groups[seen.get(bom)!].rows.push(r);
+  });
+  return groups;
+}
+
 export function exportToPdf(
   result: CalculationResult,
   companyName: string,
@@ -275,6 +306,21 @@ export function exportToPdf(
       align: 'right',
     }
   );
+
+  const customerName = customerFromBom(
+    result.summary.bom_name
+  );
+
+  if (customerName) {
+    doc.text(
+      `Customer: ${customerName}`,
+      pageW - margin,
+      19,
+      {
+        align: 'right',
+      }
+    );
+  }
 
   y = 30;
 
@@ -372,27 +418,35 @@ export function exportToPdf(
     startY: y,
 
     head: [[
-      'Level',
       'Type',
-      'Parent BOM',
-      'Item Code',
+      'Code',
       'Item',
-      'Required Qty',
+      'Req Qty',
       'Unit',
     ]],
 
-    body:
-      result.requirements.map(
-        (r) => [
-          r.level,
-          r.type,
-          r.parent_bom,
-          r.item_code || '',
-          r.item,
-          r.required_qty.toFixed(4),
-          r.unit,
-        ]
-      ),
+    body: groupRequirements(
+      result.requirements
+    ).flatMap((grp) => [
+      [
+        {
+          content: grp.bom,
+          colSpan: 5,
+          styles: {
+            fontStyle: 'bold',
+            fillColor: hexToRgb('#F4ECEF'),
+            textColor: hexToRgb('#2B2B2B'),
+          },
+        },
+      ],
+      ...grp.rows.map((r) => [
+        r.type,
+        r.item_code || '',
+        r.item,
+        fmtQty(r.required_qty),
+        r.unit,
+      ]),
+    ]),
 
     theme: 'grid',
 
@@ -409,25 +463,26 @@ export function exportToPdf(
         hexToRgb('#2B2B2B'),
     },
 
-    alternateRowStyles: {
-      fillColor:
-        hexToRgb('#F9F9F9'),
-    },
-
     didParseCell: (data) => {
       if (
         data.section ===
           'body' &&
-        data.column.index === 1
+        data.column.index === 0
       ) {
         const type =
           String(data.cell.raw);
 
-        data.cell.styles.textColor =
-          typeColor(type);
+        if (
+          type === 'Finished Good' ||
+          type === 'Semi Finished' ||
+          type === 'Raw Material'
+        ) {
+          data.cell.styles.textColor =
+            typeColor(type);
 
-        data.cell.styles.fontStyle =
-          'bold';
+          data.cell.styles.fontStyle =
+            'bold';
+        }
       }
     },
 
@@ -437,78 +492,7 @@ export function exportToPdf(
     },
   });
 
-  y =
-    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY +
-    8;
-
-  if (y > pageH - 40) {
-    doc.addPage();
-    y = margin;
-  }
-
-  doc.setFontSize(12);
-
-  doc.setFont(
-    'helvetica',
-    'bold'
-  );
-
-  doc.text(
-    'Raw Material Summary',
-    margin,
-    y
-  );
-
-  y += 4;
-
-  autoTable(doc, {
-    startY: y,
-
-    // Parent BOM added
-    head: [[
-      'Item Code',
-      'Raw Material',
-      'Parent BOM',
-      'Total Qty',
-      'Unit',
-    ]],
-
-    body:
-      result.raw_material_summary.map(
-        (r) => [
-          r.item_code || '',
-          r.item,
-          r.parent_bom,
-          r.total_qty.toFixed(4),
-          r.unit,
-        ]
-      ),
-
-    theme: 'grid',
-
-    headStyles: {
-      fillColor:
-        hexToRgb(RAW),
-      textColor: 255,
-      fontSize: 8,
-    },
-
-    bodyStyles: {
-      fontSize: 8,
-      textColor:
-        hexToRgb('#2B2B2B'),
-    },
-
-    alternateRowStyles: {
-      fillColor:
-        hexToRgb('#F9F9F9'),
-    },
-
-    margin: {
-      left: margin,
-      right: margin,
-    },
-  });
+  // Raw Material Summary intentionally excluded from print output
 
   // ---------- Footer with Page Numbers + Branding ----------
 
@@ -652,15 +636,20 @@ export function printResult(
     ''
   );
 
-  // ---------- Material Requirement Rows ----------
+  // ---------- Material Requirement Rows (grouped by Parent BOM, like on-screen) ----------
 
-  const reqRows =
+  const reqRows = groupRequirements(
     result.requirements
+  )
+    .map(
+      (grp) => `
+    <tr class="group-row">
+      <td colspan="5">${grp.bom}</td>
+    </tr>
+    ${grp.rows
       .map(
         (r) => `
     <tr>
-      <td>${r.level}</td>
-
       <td>
         <span class="badge ${r.type.replace(
           /\s/g,
@@ -670,47 +659,20 @@ export function printResult(
         </span>
       </td>
 
-      <td>${r.parent_bom}</td>
-
       <td>${r.item_code || '—'}</td>
 
       <td>${r.item}</td>
 
       <td style="text-align:right">
-        ${r.required_qty.toFixed(
-          4
-        )}
+        ${fmtQty(r.required_qty)}
       </td>
 
       <td>${r.unit}</td>
     </tr>`
       )
-      .join('');
-
-  // ---------- Raw Material Summary Rows ----------
-  // Parent BOM added
-
-  const rawRows =
-    result.raw_material_summary
-      .map(
-        (r) => `
-    <tr>
-      <td>${r.item_code || '—'}</td>
-
-      <td>${r.item}</td>
-
-      <td>${r.parent_bom}</td>
-
-      <td style="text-align:right">
-        ${r.total_qty.toFixed(
-          4
-        )}
-      </td>
-
-      <td>${r.unit}</td>
-    </tr>`
-      )
-      .join('');
+      .join('')}`
+    )
+    .join('');
 
   win.document.write(`
     <!DOCTYPE html>
@@ -768,6 +730,12 @@ export function printResult(
 
         tr:nth-child(even) td {
           background: #F9F9F9;
+        }
+
+        tr.group-row td {
+          background: #F4ECEF;
+          font-weight: bold;
+          color: #2B2B2B;
         }
 
         .qty {
@@ -865,6 +833,11 @@ export function printResult(
           result.summary.calculation_date
         ).toLocaleString()}
 
+        &nbsp;|&nbsp;
+
+        <strong>Customer:</strong>
+        ${customerFromBom(result.summary.bom_name) || '—'}
+
         <br><br>
 
         <strong>
@@ -929,44 +902,18 @@ export function printResult(
 
         <thead>
 
-          <tr>
-            <th>Level</th>
-            <th>Type</th>
-            <th>Parent BOM</th>
-            <th>Item Code</th>
-            <th>Item</th>
-            <th>Required Qty</th>
-            <th>Unit</th>
-          </tr>
+        <tr>
+          <th>Type</th>
+          <th>Code</th>
+          <th>Item</th>
+          <th style="text-align:right">Req Qty</th>
+          <th>Unit</th>
+        </tr>
 
         </thead>
 
         <tbody>
           ${reqRows}
-        </tbody>
-
-      </table>
-
-      <h2>
-        Raw Material Summary
-      </h2>
-
-      <table>
-
-        <thead>
-
-          <tr>
-            <th>Item Code</th>
-            <th>Raw Material</th>
-            <th>Parent BOM</th>
-            <th>Total Qty</th>
-            <th>Unit</th>
-          </tr>
-
-        </thead>
-
-        <tbody>
-          ${rawRows}
         </tbody>
 
       </table>
