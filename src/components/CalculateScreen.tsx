@@ -63,6 +63,12 @@ function formatNum(n: number): string {
         .replace(/\.?0+$/, '');
 }
 
+function toProper(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/(^|[\s(|\-/])([a-z])/g, (_m, sep: string, ch: string) => sep + ch.toUpperCase());
+}
+
 export function CalculateScreen({
   activeFile,
   companyName,
@@ -545,9 +551,9 @@ export function CalculateScreen({
 
       {/* ---------- Input Card ---------- */}
 
-      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-4 shadow-[var(--shadow-card)]">
+      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-3 shadow-[var(--shadow-card)]">
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-3 md:items-end">
 
           {/* Produced Item */}
 
@@ -576,8 +582,8 @@ export function CalculateScreen({
                 >
                   {selectedItem
                     ? (selectedItemCode
-                        ? `${selectedItemCode} | ${selectedItem}`
-                        : selectedItem)
+                        ? `${selectedItemCode} | ${toProper(selectedItem)}`
+                        : toProper(selectedItem))
                     : 'Search and select item...'}
                 </span>
 
@@ -664,8 +670,8 @@ export function CalculateScreen({
                               >
                                 <span className="text-[var(--color-text-primary)]">
                                   {code
-                                    ? `${code} | ${item}`
-                                    : item}
+                                    ? `${code} | ${toProper(item)}`
+                                    : toProper(item)}
                                 </span>
 
                                 {selectedItem ===
@@ -724,11 +730,11 @@ export function CalculateScreen({
                   />
                   <span className="truncate">
                     {selectedBom
-                      ? selectedBom
+                      ? toProper(selectedBom)
                       : bomNamesForItem.length === 0
                         ? '—'
                         : bomNamesForItem.length === 1
-                          ? bomNamesForItem[0]
+                          ? toProper(bomNamesForItem[0])
                           : 'Select BOM...'}
                   </span>
                 </span>
@@ -803,7 +809,7 @@ export function CalculateScreen({
                               className="w-full flex items-center justify-between px-3 py-1.5 text-sm text-left hover:bg-[var(--color-primary-light)] transition"
                             >
                               <span className="text-[var(--color-text-primary)]">
-                                {name}
+                                {toProper(name)}
                               </span>
 
                               {selectedBom ===
@@ -830,7 +836,7 @@ export function CalculateScreen({
 
           <div>
             <label className="block text-xs font-medium text-[var(--color-text-primary)] mb-1">
-              Production Quantity
+              Production Qty
             </label>
 
             <div className="relative">
@@ -1421,7 +1427,13 @@ export function CalculateScreen({
                                 colSpan={5}
                                 className="px-3 py-2 text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wide"
                               >
-                                {grp.bom}
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Boxes
+                                    size={13}
+                                    className="text-[var(--color-primary)]"
+                                  />
+                                  {grp.bom}
+                                </span>
                               </td>
                             </tr>
 
