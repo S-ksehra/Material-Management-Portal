@@ -50,7 +50,7 @@ export function exportToExcel(
   // ---------- Sheet 1: Production Summary ----------
 
   const summaryData = [
-    ['Bill Of Material Name', 'Standard Qty', 'Item Code', 'Finished Good', 'Production Qty', 'Unit', 'Calculation Date'],
+    ['Bill Of Material Name', 'Standard Qty', 'Item Code', 'Finished Good', 'Production Qty', 'Unit',],
     [
       result.summary.bom_name,
       result.summary.standard_qty,
@@ -58,9 +58,7 @@ export function exportToExcel(
       result.summary.finished_good,
       result.summary.production_qty,
       result.summary.unit,
-      new Date(
-        result.summary.calculation_date
-      ).toLocaleString(),
+      
     ],
   ];
 
