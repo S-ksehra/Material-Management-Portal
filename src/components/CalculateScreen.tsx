@@ -1167,7 +1167,7 @@ export function CalculateScreen({
                         f.label
                       }
                     >
-                      <p className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1 mb-0.5">
+                      <p className="text-[11px] text-[var(--color-text-secondary)] flex items-center gap-1 mb-0.5">
                         <f.icon
                           size={12}
                         />
@@ -1176,7 +1176,7 @@ export function CalculateScreen({
                         }
                       </p>
 
-                      <p className="text-sm font-semibold text-[var(--color-text-primary)] break-words">
+                      <p className="text-xs font-semibold text-[var(--color-text-primary)] break-words">
                         {
                           f.value
                         }
@@ -1188,9 +1188,7 @@ export function CalculateScreen({
               </div>
             </div>
 
-            {/* ---------- Tree + Raw Material Summary ---------- */}
-
-            <div className="grid lg:grid-cols-2 gap-4">
+            {/* ---------- Material Hierarchy (full width) ---------- */}
 
               {/* Material Hierarchy */}
 
@@ -1216,138 +1214,6 @@ export function CalculateScreen({
                 </div>
 
               </div>
-
-              {/* Raw Material Summary */}
-
-              <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
-
-                <div className="bg-[#92400E] px-4 py-2">
-
-                  <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
-                    <Boxes
-                      size={16}
-                    />
-                    Raw Material Summary
-                  </h2>
-
-                </div>
-
-                <div className="overflow-auto max-h-[400px]">
-
-                  <table className="w-full text-xs">
-
-                    <thead className="sticky top-0 bg-[#92400E] text-white">
-
-                      <tr>
-
-                        <th className="text-left px-3 py-1.5 font-medium">
-                          Item Code
-                        </th>
-
-                        <th className="text-left px-3 py-1.5 font-medium">
-                          Raw Material
-                        </th>
-
-                        <th className="text-left px-3 py-1.5 font-medium">
-                          Parent BOM
-                        </th>
-
-                        <th className="text-right px-3 py-1.5 font-medium">
-                          Total Qty
-                        </th>
-
-                        <th className="text-left px-3 py-1.5 font-medium">
-                          Unit
-                        </th>
-
-                      </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                      {result
-                        .raw_material_summary
-                        .length === 0 ? (
-
-                        <tr>
-
-                          <td
-                            colSpan={
-                              5
-                            }
-                            className="text-center py-6 text-[var(--color-text-secondary)]"
-                          >
-                            No raw materials.
-                          </td>
-
-                        </tr>
-
-                      ) : (
-
-                        result
-                          .raw_material_summary
-                          .map(
-                            (
-                              r,
-                              i
-                            ) => (
-
-                              <tr
-                                key={
-                                  i
-                                }
-                                className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]"
-                              >
-
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
-                                  {
-                                    r.item_code || '—'
-                                  }
-                                </td>
-
-                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
-                                  {
-                                    r.item
-                                  }
-                                </td>
-
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
-                                  {
-                                    r.parent_bom
-                                  }
-                                </td>
-
-                                <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)]">
-                                  {formatNum(
-                                    r.total_qty
-                                  )}
-                                </td>
-
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
-                                  {
-                                    r.unit
-                                  }
-                                </td>
-
-                              </tr>
-
-                            )
-                          )
-
-                      )}
-
-                    </tbody>
-
-                  </table>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          
 
               {/* Filters */}
 
@@ -1593,6 +1459,99 @@ export function CalculateScreen({
                   </table>
 
                 )}
+
+              </div>
+
+            </div>
+
+            {/* ---------- Raw Material Summary (last section) ---------- */}
+
+            <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
+
+              <div className="bg-[#92400E] px-4 py-2">
+
+                <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
+                  <Boxes size={16} />
+                  Raw Material Summary
+                </h2>
+
+              </div>
+
+              <div className="overflow-auto max-h-[400px]">
+
+                <table className="w-full text-xs">
+
+                  <thead className="sticky top-0 bg-[#92400E] text-white">
+
+                    <tr>
+
+                      <th className="text-left px-3 py-1.5 font-medium">Item Code</th>
+
+                      <th className="text-left px-3 py-1.5 font-medium">Raw Material</th>
+
+                      <th className="text-left px-3 py-1.5 font-medium">Parent BOM</th>
+
+                      <th className="text-right px-3 py-1.5 font-medium">Total Qty</th>
+
+                      <th className="text-left px-3 py-1.5 font-medium">Unit</th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {result.raw_material_summary.length === 0 ? (
+
+                      <tr>
+
+                        <td
+                          colSpan={5}
+                          className="text-center py-6 text-[var(--color-text-secondary)]"
+                        >
+                          No raw materials.
+                        </td>
+
+                      </tr>
+
+                    ) : (
+
+                      result.raw_material_summary.map((r, i) => (
+
+                        <tr
+                          key={i}
+                          className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]"
+                        >
+
+                          <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
+                            {r.item_code || '—'}
+                          </td>
+
+                          <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
+                            {r.item}
+                          </td>
+
+                          <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
+                            {r.parent_bom}
+                          </td>
+
+                          <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)]">
+                            {formatNum(r.total_qty)}
+                          </td>
+
+                          <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
+                            {r.unit}
+                          </td>
+
+                        </tr>
+
+                      ))
+
+                    )}
+
+                  </tbody>
+
+                </table>
 
               </div>
 
