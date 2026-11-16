@@ -89,7 +89,7 @@ export function Dashboard({
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Dashboard</h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
             {activeFile
-              ? `${activeFile.file_name} is active and ready for calculation.`
+              ? `Ready for calculation.`
               : 'Import a BOM file to get started.'}
           </p>
         </div>
