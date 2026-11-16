@@ -1347,31 +1347,7 @@ export function CalculateScreen({
 
             </div>
 
-            {/* ---------- Material Requirement Table ---------- */}
-
-            <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
-
-              <div className="bg-[var(--color-primary)] px-4 py-2 flex items-center gap-2">
-
-                <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
-                  <Boxes
-                    size={16}
-                  />
-                  Material Requirement
-                </h2>
-
-                <span className="ml-auto text-white/80 text-xs">
-                  {
-                    filteredRequirements.length
-                  }{' '}
-                  of{' '}
-                  {
-                    result.requirements.length
-                  }{' '}
-                  rows
-                </span>
-
-              </div>
+          
 
               {/* Filters */}
 
@@ -1485,7 +1461,31 @@ export function CalculateScreen({
                 </select>
 
               </div>
+  {/* ---------- Material Requirement Table ---------- */}
 
+            <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
+
+              <div className="bg-[var(--color-primary)] px-4 py-2 flex items-center gap-2">
+
+                <h2 className="text-white font-semibold flex items-center gap-1.5 text-sm">
+                  <Boxes
+                    size={16}
+                  />
+                  Material Requirement
+                </h2>
+
+                <span className="ml-auto text-white/80 text-xs">
+                  {
+                    filteredRequirements.length
+                  }{' '}
+                  of{' '}
+                  {
+                    result.requirements.length
+                  }{' '}
+                  rows
+                </span>
+
+              </div>
               {/* Requirement Table — grouped by Parent BOM (stage-wise) */}
 
               <div>
