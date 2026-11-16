@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { Fragment, useMemo, useState, useEffect } from 'react';
 import {
   Search,
   Calculator,
@@ -401,8 +401,8 @@ export function CalculateScreen({
   const [filterItem, setFilterItem] =
     useState('');
 
-  const [globalSearch, setGlobalSearch] =
-    useState('');
+  const [filterStage, setFilterStage] =
+    useState('all');
 
   const STAGE_ORDER = [
     'SHEET CUTTER',
@@ -413,13 +413,19 @@ export function CalculateScreen({
     'FINISHED GOODS',
   ];
 
-  function stageIndex(bomName: string): number {
-    if (!bomName) return STAGE_ORDER.length;
+  function stageOf(bomName: string): string {
+    if (!bomName) return 'Other';
     const parts = bomName.split(/[|\-]/).map((p) => p.trim().toUpperCase());
-    for (let i = 0; i < STAGE_ORDER.length; i++) {
-      if (parts.includes(STAGE_ORDER[i])) return i;
+    for (const s of STAGE_ORDER) {
+      if (parts.includes(s)) return s;
     }
-    return STAGE_ORDER.length;
+    return 'Other';
+  }
+
+  function stageIndex(bomName: string): number {
+    const s = stageOf(bomName);
+    const i = STAGE_ORDER.indexOf(s);
+    return i === -1 ? STAGE_ORDER.length : i;
   }
 
   const filteredRequirements =
@@ -465,26 +471,13 @@ export function CalculateScreen({
             return false;
           }
 
-          if (globalSearch) {
-            const g =
-              globalSearch.toLowerCase();
-
-            if (
-              !r.item
-                .toLowerCase()
-                .includes(g) &&
-              !r.type
-                .toLowerCase()
-                .includes(g) &&
-              !r.parent_bom
-                .toLowerCase()
-                .includes(g) &&
-              !r.unit
-                .toLowerCase()
-                .includes(g)
-            ) {
-              return false;
-            }
+          if (
+            filterStage !==
+              'all' &&
+            stageOf(r.parent_bom) !==
+              filterStage
+          ) {
+            return false;
           }
 
           return true;
@@ -502,7 +495,7 @@ export function CalculateScreen({
       filterLevel,
       filterUnit,
       filterItem,
-      globalSearch,
+      filterStage,
     ]);
 
   const availableLevels =
@@ -1458,27 +1451,32 @@ export function CalculateScreen({
                   )}
                 </select>
 
-                <div className="relative ml-auto">
+                <select
+                  value={
+                    filterStage
+                  }
+                  onChange={(e) =>
+                    setFilterStage(
+                      e.target.value
+                    )
+                  }
+                  className="px-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md outline-none focus:border-[var(--color-primary)]"
+                >
+                  <option value="all">
+                    All Stages
+                  </option>
 
-                  <Search
-                    size={13}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]"
-                  />
-
-                  <input
-                    value={
-                      globalSearch
-                    }
-                    onChange={(e) =>
-                      setGlobalSearch(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Global search..."
-                    className="pl-7 pr-2.5 py-1 text-xs bg-white border border-[var(--color-border-base)] rounded-md w-36 outline-none focus:border-[var(--color-primary)]"
-                  />
-
-                </div>
+                  {STAGE_ORDER.map(
+                    (s) => (
+                      <option
+                        key={s}
+                        value={s}
+                      >
+                        {s}
+                      </option>
+                    )
+                  )}
+                </select>
 
               </div>
 
@@ -1495,79 +1493,94 @@ export function CalculateScreen({
 
                 ) : (
 
-                  (() => {
-                    // Group by parent_bom preserving sorted order
-                    const groups: { bom: string; rows: typeof filteredRequirements }[] = [];
-                    const seen = new Map<string, number>();
-                    filteredRequirements.forEach((r) => {
-                      const bom = r.parent_bom || '—';
-                      if (!seen.has(bom)) {
-                        seen.set(bom, groups.length);
-                        groups.push({ bom, rows: [] });
-                      }
-                      groups[seen.get(bom)!].rows.push(r);
-                    });
+                  <table className="w-full text-xs">
 
-                    return groups.map((grp, gi) => (
-                      <div key={gi} className="border-b border-[var(--color-border-base)] last:border-0">
+                    <thead className="sticky top-0 z-10 bg-[var(--color-primary)] text-white">
 
-                        {/* Stage header */}
-                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-100/80 sticky top-0 z-[5]">
-                          <Boxes size={13} className="text-[var(--color-primary)] shrink-0" />
-                          <span className="text-xs font-bold text-[var(--color-text-primary)] truncate flex-1 min-w-0">
-                            {grp.bom}
-                          </span>
-                          <span className="text-[10px] text-[var(--color-text-secondary)] shrink-0">
-                            {grp.rows.length} item{grp.rows.length > 1 ? 's' : ''}
-                          </span>
-                        </div>
+                      <tr>
 
-                        {/* Items under this stage */}
-                        <table className="w-full text-xs">
-                          <thead className="bg-[var(--color-primary)] text-white">
-                            <tr>
-                              <th className="text-left px-3 py-1.5 font-medium w-12">Lvl</th>
-                              <th className="text-left px-3 py-1.5 font-medium w-20">Type</th>
-                              <th className="text-left px-3 py-1.5 font-medium">Code</th>
-                              <th className="text-left px-3 py-1.5 font-medium">Item</th>
-                              <th className="text-right px-3 py-1.5 font-medium">Req Qty</th>
-                              <th className="text-left px-3 py-1.5 font-medium w-16">Unit</th>
+                        <th className="text-left px-3 py-1.5 font-semibold w-32">
+                          Type
+                        </th>
+
+                        <th className="text-left px-3 py-1.5 font-semibold">
+                          Code
+                        </th>
+
+                        <th className="text-left px-3 py-1.5 font-semibold">
+                          Item
+                        </th>
+
+                        <th className="text-right px-3 py-1.5 font-semibold">
+                          Req Qty
+                        </th>
+
+                        <th className="text-left px-3 py-1.5 font-semibold w-20">
+                          Unit
+                        </th>
+
+                      </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                      {(() => {
+                        // Group by parent_bom preserving sorted order
+                        const groups: { bom: string; rows: typeof filteredRequirements }[] = [];
+                        const seen = new Map<string, number>();
+                        filteredRequirements.forEach((r) => {
+                          const bom = r.parent_bom || '—';
+                          if (!seen.has(bom)) {
+                            seen.set(bom, groups.length);
+                            groups.push({ bom, rows: [] });
+                          }
+                          groups[seen.get(bom)!].rows.push(r);
+                        });
+
+                        return groups.map((grp, gi) => (
+                          <Fragment key={gi}>
+
+                            {/* Stage header row */}
+                            <tr className="bg-slate-100">
+                              <td
+                                colSpan={5}
+                                className="px-3 py-2 text-xs font-bold text-black uppercase tracking-wide"
+                              >
+                                {grp.bom}
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
+
                             {grp.rows.map((r, ri) => (
                               <tr
                                 key={ri}
-                                className={`hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/50 ${
-                                  ri % 2 === 1 ? 'bg-[#F9F9F9]' : ''
-                                }`}
+                                className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/50"
                               >
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
-                                  {r.level}
-                                </td>
                                 <td className="px-3 py-1.5">
                                   <TypeBadge type={r.type} />
                                 </td>
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
+                                <td className="px-3 py-1.5 text-black font-semibold tabular-nums break-words whitespace-normal">
                                   {r.item_code || '—'}
                                 </td>
-                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
+                                <td className="px-3 py-1.5 text-black font-semibold break-words whitespace-normal">
                                   {r.item}
                                 </td>
-                                <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)] font-medium">
+                                <td className="px-3 py-1.5 text-right text-black font-semibold tabular-nums">
                                   {formatNum(r.required_qty)}
                                 </td>
-                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
+                                <td className="px-3 py-1.5 text-black font-semibold break-words whitespace-normal">
                                   {r.unit}
                                 </td>
                               </tr>
                             ))}
-                          </tbody>
-                        </table>
 
-                      </div>
-                    ));
-                  })()
+                          </Fragment>
+                        ));
+                      })()}
+
+                    </tbody>
+
+                  </table>
 
                 )}
 
