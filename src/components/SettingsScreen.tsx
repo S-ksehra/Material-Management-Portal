@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { User, Mail, Lock, Eye, EyeOff, ToggleLeft, ToggleRight, CheckCircle2, AlertCircle, Loader2, KeyRound } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, ToggleLeft, ToggleRight, CheckCircle2, AlertCircle, Loader2, KeyRound, FileDown, Printer } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { changePassword, updateUser } from '@/lib/authApi';
 import { logAudit } from '@/lib/dataAccess';
+import { loadExportPrefs, saveExportPrefs, type ExportPrefs } from '@/lib/prefs';
 
 export function SettingsScreen() {
   const { user, updateUserInSession } = useAuth();
@@ -19,6 +20,15 @@ export function SettingsScreen() {
   const [showNewPw, setShowNewPw] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
   const [pwMsg, setPwMsg] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  const [exportPrefs, setExportPrefs] = useState<ExportPrefs>(loadExportPrefs);
+
+  const toggleExportPref = (key: keyof ExportPrefs, label: string) => {
+    const next = { ...exportPrefs, [key]: !exportPrefs[key] };
+    setExportPrefs(next);
+    saveExportPrefs(next);
+    logAudit('Preference Changed', `${label} ${next[key] ? 'enabled' : 'disabled'}`, user?.username);
+  };
 
   if (!user) return null;
 
@@ -292,6 +302,69 @@ export function SettingsScreen() {
             {savingPw ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
             Change Password
           </button>
+        </div>
+      </div>
+
+      {/* Export & Print Preferences */}
+      <div className="bg-white border border-[var(--color-border-base)] rounded-xl p-5 shadow-[var(--shadow-card)]">
+        <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
+          <Printer size={18} className="text-[var(--color-primary)]" /> Export & Print Preferences
+        </h2>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between bg-[var(--color-primary-light)] rounded-lg p-3">
+            <div className="flex items-center gap-3">
+              <FileDown size={18} className="text-[var(--color-success)]" />
+              <div>
+                <p className="text-sm font-medium text-[var(--color-text-primary)]">Excel Export</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">Show the Excel export button on the calculate screen.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleExportPref('excel', 'Excel Export')}
+              className="flex items-center gap-2 text-sm font-medium transition"
+              aria-label="Toggle Excel export"
+            >
+              {exportPrefs.excel ? (
+                <>
+                  <ToggleRight size={36} className="text-[var(--color-success)]" />
+                  <span className="text-[var(--color-success)]">On</span>
+                </>
+              ) : (
+                <>
+                  <ToggleLeft size={36} className="text-[var(--color-text-secondary)]" />
+                  <span className="text-[var(--color-text-secondary)]">Off</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between bg-[var(--color-primary-light)] rounded-lg p-3">
+            <div className="flex items-center gap-3">
+              <Printer size={18} className="text-[var(--color-primary)]" />
+              <div>
+                <p className="text-sm font-medium text-[var(--color-text-primary)]">Print</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">Show the print button on the calculate screen.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleExportPref('print', 'Print')}
+              className="flex items-center gap-2 text-sm font-medium transition"
+              aria-label="Toggle print"
+            >
+              {exportPrefs.print ? (
+                <>
+                  <ToggleRight size={36} className="text-[var(--color-success)]" />
+                  <span className="text-[var(--color-success)]">On</span>
+                </>
+              ) : (
+                <>
+                  <ToggleLeft size={36} className="text-[var(--color-text-secondary)]" />
+                  <span className="text-[var(--color-text-secondary)]">Off</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

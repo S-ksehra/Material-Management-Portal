@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { LayoutDashboard, Calculator, ScrollText, Boxes, Settings, X, LogOut, User as UserIcon, Menu } from 'lucide-react';
 import type { BomFile, AuditEntry, ItemMasterEntry } from '@/types';
+import { AuditLogScreen } from '@/components/AuditLogScreen';
 import { getActiveFile, getAllFiles, getAuditLog, insertBomFile, deactivateActiveFile, deleteActiveFile, getNextVersion, logAudit, getItemMaster, replaceItemMaster } from '@/lib/dataAccess';
 import { parseBomExcel, validateBom, parseItemMasterExcel } from '@/lib/bomEngine';
 import { Dashboard } from '@/components/Dashboard';
@@ -290,36 +291,10 @@ export default function App() {
             </div>
           )}
           {view === 'audit' && (
-            <div className="animate-fadeIn">
-              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">Audit Log</h1>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-4">Complete activity history.</p>
-              <div className="bg-white border border-[var(--color-border-base)] rounded-xl shadow-[var(--shadow-card)] overflow-hidden">
-                <div className="overflow-auto max-h-[70vh]">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-[var(--color-primary)] text-white">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium">Date & Time</th>
-                        <th className="text-left px-4 py-2 font-medium">Action</th>
-                        <th className="text-left px-4 py-2 font-medium">User</th>
-                        <th className="text-left px-4 py-2 font-medium">Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditLog.length === 0 ? (
-                        <tr><td colSpan={4} className="text-center py-8 text-[var(--color-text-secondary)]">No activity logged yet.</td></tr>
-                      ) : auditLog.map((a) => (
-                        <tr key={a.id} className="hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]">
-                          <td className="px-4 py-2 text-[var(--color-text-secondary)] whitespace-nowrap">{new Date(a.created_at).toLocaleString()}</td>
-                          <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">{a.action}</td>
-                          <td className="px-4 py-2 text-[var(--color-text-secondary)]">{a.user}</td>
-                          <td className="px-4 py-2 text-[var(--color-text-secondary)]">{a.remarks ?? '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <AuditLogScreen
+              entries={auditLog}
+              onRefresh={() => void refreshAll()}
+            />
           )}
           {view === 'settings' && <SettingsScreen />}
         </main>

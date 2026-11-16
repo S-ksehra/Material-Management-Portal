@@ -36,6 +36,9 @@ import {
   printStageWise,
   buildStagePages,
 } from '@/lib/exporters';
+import {
+  useExportPrefs,
+} from '@/lib/prefs';
 
 import type { StagePageData } from '@/lib/exporters';
 
@@ -155,6 +158,8 @@ export function CalculateScreen({
 
   const [error, setError] =
     useState('');
+
+  const exportPrefs = useExportPrefs();
 
   // ---------- Auto Fetch Details ----------
 
@@ -1045,18 +1050,19 @@ export function CalculateScreen({
 
             <div className="flex flex-wrap gap-2 justify-end">
 
-              <button
-                onClick={
-                  handleExportExcel
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-success)] hover:bg-green-700 text-white rounded-lg text-xs font-medium transition shadow-sm"
-              >
-                <FileDown
-                  size={14}
-                />
-                Excel
-              </button>
-
+              {exportPrefs.excel && (
+                <button
+                  onClick={
+                    handleExportExcel
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-success)] hover:bg-green-700 text-white rounded-lg text-xs font-medium transition shadow-sm"
+                >
+                  <FileDown
+                    size={14}
+                  />
+                  Excel
+                </button>
+              )}
               <button
                 onClick={
                   handleExportPdf
@@ -1069,17 +1075,19 @@ export function CalculateScreen({
                 PDF
               </button>
 
-              <button
-                onClick={
-                  handlePrint
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary-light)] border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-xs font-medium transition"
-              >
-                <Printer
-                  size={14}
-                />
-                Print
-              </button>
+              {exportPrefs.print && (
+                <button
+                  onClick={
+                    handlePrint
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-primary-light)] border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg text-xs font-medium transition"
+                >
+                  <Printer
+                    size={14}
+                  />
+                  Print
+                </button>
+              )}
 
               <button
                 onClick={
