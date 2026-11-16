@@ -404,11 +404,30 @@ export function CalculateScreen({
   const [globalSearch, setGlobalSearch] =
     useState('');
 
+  const STAGE_ORDER = [
+    'SHEET CUTTER',
+    'CORRUGATION',
+    'PASTING',
+    'DIE CUTTING',
+    'PRINTING & STITCHING',
+    'FINISHED GOODS',
+  ];
+
+  function stageIndex(bomName: string): number {
+    if (!bomName) return STAGE_ORDER.length;
+    const parts = bomName.split(/[|\-]/).map((p) => p.trim().toUpperCase());
+    for (let i = 0; i < STAGE_ORDER.length; i++) {
+      if (parts.includes(STAGE_ORDER[i])) return i;
+    }
+    return STAGE_ORDER.length;
+  }
+
   const filteredRequirements =
     useMemo(() => {
       if (!result) return [];
 
-      return result.requirements.filter(
+      return result.requirements
+        .filter(
         (r) => {
           if (
             filterType !==
@@ -470,7 +489,13 @@ export function CalculateScreen({
 
           return true;
         }
-      );
+      )
+      .sort((a, b) => {
+        const sa = stageIndex(a.parent_bom);
+        const sb = stageIndex(b.parent_bom);
+        if (sa !== sb) return sa - sb;
+        return a.level - b.level;
+      });
     }, [
       result,
       filterType,
@@ -1457,140 +1482,94 @@ export function CalculateScreen({
 
               </div>
 
-              {/* Requirement Table */}
+              {/* Requirement Table — grouped by Parent BOM (stage-wise) */}
 
               <div className="overflow-auto max-h-[480px]">
 
-                <table className="w-full text-xs">
+                {filteredRequirements.length ===
+                0 ? (
 
-                  <thead className="sticky top-0 bg-[var(--color-primary)] text-white">
+                  <p className="text-center py-6 text-[var(--color-text-secondary)] text-xs">
+                    No rows match filters.
+                  </p>
 
-                    <tr>
+                ) : (
 
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Level
-                      </th>
+                  (() => {
+                    // Group by parent_bom preserving sorted order
+                    const groups: { bom: string; rows: typeof filteredRequirements }[] = [];
+                    const seen = new Map<string, number>();
+                    filteredRequirements.forEach((r) => {
+                      const bom = r.parent_bom || '—';
+                      if (!seen.has(bom)) {
+                        seen.set(bom, groups.length);
+                        groups.push({ bom, rows: [] });
+                      }
+                      groups[seen.get(bom)!].rows.push(r);
+                    });
 
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Type
-                      </th>
+                    return groups.map((grp, gi) => (
+                      <div key={gi} className="border-b border-[var(--color-border-base)] last:border-0">
 
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Parent BOM
-                      </th>
+                        {/* Stage header */}
+                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-100/80 sticky top-0 z-[5]">
+                          <Boxes size={13} className="text-[var(--color-primary)] shrink-0" />
+                          <span className="text-xs font-bold text-[var(--color-text-primary)] truncate flex-1 min-w-0">
+                            {grp.bom}
+                          </span>
+                          <span className="text-[10px] text-[var(--color-text-secondary)] shrink-0">
+                            {grp.rows.length} item{grp.rows.length > 1 ? 's' : ''}
+                          </span>
+                        </div>
 
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Item Code
-                      </th>
+                        {/* Items under this stage */}
+                        <table className="w-full text-xs">
+                          <thead className="bg-[var(--color-primary)] text-white">
+                            <tr>
+                              <th className="text-left px-3 py-1.5 font-medium w-12">Lvl</th>
+                              <th className="text-left px-3 py-1.5 font-medium w-20">Type</th>
+                              <th className="text-left px-3 py-1.5 font-medium">Code</th>
+                              <th className="text-left px-3 py-1.5 font-medium">Item</th>
+                              <th className="text-right px-3 py-1.5 font-medium">Req Qty</th>
+                              <th className="text-left px-3 py-1.5 font-medium w-16">Unit</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {grp.rows.map((r, ri) => (
+                              <tr
+                                key={ri}
+                                className={`hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)]/50 ${
+                                  ri % 2 === 1 ? 'bg-[#F9F9F9]' : ''
+                                }`}
+                              >
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
+                                  {r.level}
+                                </td>
+                                <td className="px-3 py-1.5">
+                                  <TypeBadge type={r.type} />
+                                </td>
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
+                                  {r.item_code || '—'}
+                                </td>
+                                <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
+                                  {r.item}
+                                </td>
+                                <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)] font-medium">
+                                  {formatNum(r.required_qty)}
+                                </td>
+                                <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
+                                  {r.unit}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
 
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Item
-                      </th>
+                      </div>
+                    ));
+                  })()
 
-                      <th className="text-right px-3 py-1.5 font-medium">
-                        Required Qty
-                      </th>
-
-                      <th className="text-left px-3 py-1.5 font-medium">
-                        Unit
-                      </th>
-
-                    </tr>
-
-                  </thead>
-
-                  <tbody>
-
-                    {filteredRequirements.length ===
-                    0 ? (
-
-                      <tr>
-
-                        <td
-                          colSpan={
-                            7
-                          }
-                          className="text-center py-6 text-[var(--color-text-secondary)]"
-                        >
-                          No rows match filters.
-                        </td>
-
-                      </tr>
-
-                    ) : (
-
-                      filteredRequirements.map(
-                        (
-                          r,
-                          i
-                        ) => (
-
-                          <tr
-                            key={
-                              i
-                            }
-                            className={`hover:bg-[var(--color-primary-light)] transition border-b border-[var(--color-border-base)] ${
-                              i % 2 ===
-                              1
-                                ? 'bg-[#F9F9F9]'
-                                : ''
-                            }`}
-                          >
-
-                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
-                              {
-                                r.level
-                              }
-                            </td>
-
-                            <td className="px-3 py-1.5">
-                              <TypeBadge
-                                type={
-                                  r.type
-                                }
-                              />
-                            </td>
-
-                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
-                              {
-                                r.parent_bom
-                              }
-                            </td>
-
-                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)] tabular-nums">
-                              {
-                                r.item_code || '—'
-                              }
-                            </td>
-
-                            <td className="px-3 py-1.5 text-[var(--color-text-primary)] font-medium">
-                              {
-                                r.item
-                              }
-                            </td>
-
-                            <td className="px-3 py-1.5 text-right tabular-nums text-[var(--color-text-primary)] font-medium">
-                              {formatNum(
-                                r.required_qty
-                              )}
-                            </td>
-
-                            <td className="px-3 py-1.5 text-[var(--color-text-secondary)]">
-                              {
-                                r.unit
-                              }
-                            </td>
-
-                          </tr>
-
-                        )
-                      )
-
-                    )}
-
-                  </tbody>
-
-                </table>
+                )}
 
               </div>
 
